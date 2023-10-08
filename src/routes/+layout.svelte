@@ -2,6 +2,6 @@
 	import '../app.postcss';
 </script>
 
-<div class="p-6">
+<div class=" p-10">
 	<slot />
 </div>

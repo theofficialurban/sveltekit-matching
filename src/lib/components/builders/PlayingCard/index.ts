@@ -8,6 +8,7 @@ export type CardState = {
 	rotation: Tweened<number>;
 };
 export const flipper = (node: HTMLDivElement, s: Status) => {
+	if (s === 'FACEUP') return;
 	return {
 		update(s: Status) {
 			animate(
@@ -21,21 +22,3 @@ export const flipper = (node: HTMLDivElement, s: Status) => {
 		}
 	};
 };
-export default function playingcard<E extends HTMLElement = HTMLDivElement>(
-	node: E,
-	{ rotation }: { rotation: number }
-) {
-	//node.addEventListener('click', cardState.flip);
-
-	return {
-		update({ rotation }: { flip: () => void; rotation: number }) {
-			const styles = `transform: rotate3d(0,1,0, ${rotation}deg);`;
-			node.setAttribute('style', styles);
-		},
-		destroy() {
-			//node.removeEventListener('click', cardState.flip);
-			node.remove();
-			console.log('Card Destroyed');
-		}
-	};
-}

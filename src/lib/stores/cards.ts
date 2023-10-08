@@ -1,5 +1,4 @@
 import { writable, type Writable } from 'svelte/store';
-import PlayingCard from '$lib/components/PlayingCard/playing-card.svelte';
 import { tweened, type Tweened } from 'svelte/motion';
 import type { SvelteComponent } from 'svelte';
 export type Status = 'FACEDOWN' | 'FLIPPING' | 'FACEUP';
@@ -13,14 +12,7 @@ export type CardState<C extends SvelteComponent, V = undefined> = {
 	state: ComponentState<V>;
 	self: C | null;
 };
-export default function getCardsStore(count: number = 5) {
-	const newStore: Array<typeof PlayingCard> = [];
-	for (let index = 0; index < count; index++) {
-		newStore.push(PlayingCard);
-	}
-	const store = writable<Array<typeof PlayingCard>>(newStore);
-	return store;
-}
+
 export function createCards<C extends SvelteComponent, V = undefined>(
 	count: number = 5
 ): Writable<CardState<C, V>[]> {

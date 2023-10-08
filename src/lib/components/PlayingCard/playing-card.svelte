@@ -1,48 +1,67 @@
 <script lang="ts">
-	import { writable } from 'svelte/store';
 	import { fade } from 'svelte/transition';
-	import { tweened } from 'svelte/motion';
+	import { tweened, type Tweened } from 'svelte/motion';
 	import { quartInOut } from 'svelte/easing';
 	import { base } from '$app/paths';
 	import playingcard from '../builders/PlayingCard';
-	import type { CardState } from '../builders/PlayingCard';
 	import { createEventDispatcher } from 'svelte';
-	const dispatch = createEventDispatcher<{ faceup: number; facedown: number }>();
-	export const state: CardState = {
-		status: writable('FACEDOWN'),
-		rotation: tweened(0, { duration: 1000, easing: quartInOut }),
-		flip: () => {
-			const { status, rotation } = state;
-			if (!$status || cardId === null) return;
+	const dispatch = createEventDispatcher<{ faceup: number; facedown: number}>();
+	
+		
+		
+	export const newFlip = () => {
+		return new Promise((resolve, reject) => {
+			if (!cardStatus || cardId === null) return reject("Initial Error");
 
-			if ($status === 'FACEDOWN') {
-				rotation.set(360).then(() => {
-					status.set('FACEUP');
+			if (cardStatus === 'FACEDOWN') {
+				cardStatus = 'FLIPPING'
+				return rotation.set(360).then(() => {
+					cardStatus ='FACEUP'
 					dispatch('faceup', cardId!);
+					return resolve('faceup');
+				})
+			} else if (cardStatus === 'FACEUP') {
+				cardStatus = 'FLIPPING'
+				return rotation.set(0).then(() => {
+					cardStatus ='FACEDOWN'
+					dispatch('facedown', cardId!);
+					return resolve('facedown')
 				});
-			} else if ($status === 'FACEUP') {
-				rotation.set(0).then(() => {
-					status.set('FACEDOWN');
+			}
+		});
+	}
+	export const flip: () => void = () => {
+			if (!cardStatus || cardId === null) return;
+
+			if (cardStatus === 'FACEDOWN') {
+				cardStatus = 'FLIPPING'
+				return rotation.set(360).then(() => {
+					cardStatus ='FACEUP'
+					dispatch('faceup', cardId!);
+				})
+			} else if (cardStatus === 'FACEUP') {
+				cardStatus = 'FLIPPING'
+				return rotation.set(0).then(() => {
+					cardStatus ='FACEDOWN'
 					dispatch('facedown', cardId!);
 				});
 			}
 		}
-	};
+	export const rotation = tweened(0, { duration: 1000, easing: quartInOut });
 	export let cardId: number | null = null;
+	export let cardStatus:'FACEDOWN' | 'FACEUP' | 'FLIPPING' = 'FACEDOWN'
 	export let cardValue: string | null = null;
-	const { rotation, status, flip } = state;
 
-	const key = 1;
 </script>
-
+<svelte:options accessors={true} />
 {#if cardId !== null}
-	<div class="w-[235px] h-[331px] p-2" use:playingcard={{ flip, rotation: $rotation }}>
-		{#if $status === 'FACEDOWN' && $rotation === 0}
-			<div out:fade={{ delay: 500 }} in:fade>
+	<div class="w-[235px] h-[331px] p-2" on:click on:keypress tabindex={cardId} role='button' use:playingcard={{ rotation: $rotation }}>
+		{#if cardStatus === 'FACEDOWN' && $rotation === 0}
+			<div out:fade={{ delay: 500 }}>
 				<img src={`${base}/playing-card-235x331.png`} alt="Playing Card" />
 			</div>
-		{:else if $status === 'FACEUP' && $rotation === 360}
-			<div in:fade={{}} out:fade={{ delay: 600 }}><slot /></div>
+		{:else if cardStatus === 'FACEUP' && $rotation === 360}
+			<div out:fade={{ delay: 500 }}><slot /></div>
 		{/if}
 	</div>
 {/if}

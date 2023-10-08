@@ -1,16 +1,31 @@
+import type { Status } from '$lib/stores/cards';
+import { animate } from 'motion';
 import type { Tweened } from 'svelte/motion';
 import type { Writable } from 'svelte/store';
 
 export type CardState = {
 	status: Writable<'FACEDOWN' | 'FACEUP'>;
 	rotation: Tweened<number>;
-	flip: () => void;
+};
+export const flipper = (node: HTMLDivElement, s: Status) => {
+	return {
+		update(s: Status) {
+			animate(
+				node,
+				{ rotateY: s === 'FACEUP' ? 360 : 0 },
+				{ duration: 1, direction: s === 'FACEDOWN' ? 'reverse' : 'normal', easing: 'linear' }
+			);
+		},
+		destroy() {
+			return;
+		}
+	};
 };
 export default function playingcard<E extends HTMLElement = HTMLDivElement>(
 	node: E,
-	cardState: { flip: () => void; rotation: number }
+	{ rotation }: { rotation: number }
 ) {
-	node.addEventListener('click', cardState.flip);
+	//node.addEventListener('click', cardState.flip);
 
 	return {
 		update({ rotation }: { flip: () => void; rotation: number }) {
@@ -18,7 +33,7 @@ export default function playingcard<E extends HTMLElement = HTMLDivElement>(
 			node.setAttribute('style', styles);
 		},
 		destroy() {
-			node.removeEventListener('click', cardState.flip);
+			//node.removeEventListener('click', cardState.flip);
 			node.remove();
 			console.log('Card Destroyed');
 		}

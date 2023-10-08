@@ -27,7 +27,7 @@
 
 <div
 	id={state.id.toString()}
-	class="w-[235px] h-[331px]"
+	class="aspect-[2.5/3.5] mx-auto p-2"
 	role="button"
 	tabindex={state.id}
 	use:flipper={state.status}
@@ -36,18 +36,12 @@
 >
 	{#if state.status === 'FACEDOWN'}
 		<img
-			out:blur={{ duration: 500 }}
-			in:blur={{ delay: 500, duration: 500 }}
-			class="w-[235px] h-[331px]"
+			class="mx-auto aspect-[2.5/3.5]"
 			src={`${base}/playing-card-235x331.png`}
 			alt="Playing Card"
 		/>
 	{:else if state.status === 'FACEUP'}
-		<div
-			out:blur={{ duration: 500 }}
-			in:blur={{ delay: 500, duration: 500 }}
-			class={`w-[235px] h-[331px] ${className}`}
-		>
+		<div class={`mx-auto aspect-[2.5/3.5] ${className}`}>
 			<slot />
 		</div>
 	{/if}

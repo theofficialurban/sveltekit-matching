@@ -5,16 +5,14 @@
 	const cards = createCards<PlayingCardTwo>(10);
 </script>
 
-<div class="columns-5 gap-6 bg-black">
+<div class="columns-5 gap-6 overflow-hidden">
 	{#each $cards as card (card.state.id)}
-		<div class="p-3">
-			<svelte:component
-				this={Card}
-				state={$cards[card.state.id].state}
-				bind:this={$cards[card.state.id].self}
-			>
-				<img class="" src="https://placehold.co/235x331" alt={`Card_${card.state.id}`} />
-			</svelte:component>
-		</div>
+		<svelte:component
+			this={Card}
+			state={$cards[card.state.id].state}
+			bind:this={$cards[card.state.id].self}
+		>
+			<img class="mx-auto" src="https://placehold.co/250x350" alt={`Card_${card.state.id}`} />
+		</svelte:component>
 	{/each}
 </div>

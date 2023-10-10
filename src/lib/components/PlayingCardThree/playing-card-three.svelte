@@ -1,27 +1,23 @@
 <svelte:options accessors={true} />
 
 <script lang="ts">
-	import type { Status } from './card';
+	import type { CardEvents, CardSlotClasses, CardState, CardTransition, Status } from './card';
 	import { createEventDispatcher } from 'svelte';
 	import { base } from '$app/paths';
 	import { tweened, type Tweened } from 'svelte/motion';
-	const dispatch = createEventDispatcher<{
-		reveal: { _id: number; _value?: any };
-		cover: { _id: number; _value?: any };
-		initflip: { _id: number; _value?: any };
-	}>();
-	type Transition = { rotation: number; fade: number };
+	const dispatch = createEventDispatcher<CardEvents>();
+
 	const transition: { rotation: Tweened<number>; fade: Tweened<number> } = {
 		rotation: tweened(0, { duration: 1000 }),
 		fade: tweened(-1, { duration: 1000 })
 	};
 	const { rotation, fade } = transition;
-	export let state: {
-		_id: number;
-		_value?: any;
-		_status: Status;
+	export let state: CardState;
+	export let classes: CardSlotClasses = {
+		card: 'w-[250px] h-[350px] relative text-black playing-card p-3',
+		values: 'p-6 text-3xl text-red-600 font-extrabold',
+		facedown: ' object-contain'
 	};
-
 	export const flip = () => {
 		if (!state || !state._status) console.error('Error');
 		dispatch('initflip', { _id: state._id, _value: state._value });
@@ -39,9 +35,9 @@
 			});
 		}
 	};
-	const flipper = (node: HTMLElement, options: Transition) => {
+	const flipper = (node: HTMLElement, options: CardTransition) => {
 		return {
-			update({ rotation, fade }: Transition) {
+			update({ rotation, fade }: CardTransition) {
 				let styles = `opacity: ${fade * fade * 100}%; transform: rotate3d(0,1,0,${rotation}deg);`;
 				node.setAttribute('style', styles);
 			}
@@ -51,25 +47,25 @@
 
 <div
 	role="button"
-	on:click={flip}
+	on:click
 	on:keypress
 	tabindex={state._id}
 	use:flipper={{ rotation: $rotation, fade: $fade }}
-	class=" bg-white text-black playing-card overflow-hidden"
+	class={classes.card}
 >
 	{#if $rotation > 180}
-		<div class="w-[250px] h-[350px]">
-			<div class="w-[250px] h-[350px]">
+		<div class="">
+			<div class="">
 				<slot />
 			</div>
-			<span class="bottom-0.5 p-2 fixed font-extrabold">ID: {state._id}</span>
-			<span class="top-0 left-0 fixed p-2 text-red-600 font-extrabold">{state._value}</span>
-			<span class="top-0 right-0 fixed p-2 text-red-600 font-extrabold">{state._value}</span>
-			<span class="right-0 bottom-0 fixed p-2 font-extrabold">{state._status}</span>
+			<span class="bottom-0.5 absolute font-extrabold">ID: {state._id}</span>
+			<span class={`top-0 left-0 absolute ${classes.values}`}>{state._value}</span>
+			<span class={`top-0 right-0 absolute ${classes.values}`}>{state._value}</span>
+			<span class="right-0 bottom-0 absolute font-extrabold">{state._status}</span>
 		</div>
 	{:else if $rotation <= 180}
 		<img
-			class="w-[250px] h-[350px]"
+			class={classes.facedown}
 			src={`${base}/playing-card-235x331.png`}
 			alt={`Card${state._id}`}
 		/>
@@ -83,5 +79,7 @@
 	}
 	.playing-card {
 		font-family: PlayingCards;
+		width: 250px;
+		height: 350px;
 	}
 </style>

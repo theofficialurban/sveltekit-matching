@@ -1,32 +1,19 @@
-import { writable, type Writable } from 'svelte/store';
-import { tweened, type Tweened } from 'svelte/motion';
-import type { SvelteComponent } from 'svelte';
-export type Status = 'FACEDOWN' | 'FLIPPING' | 'FACEUP';
-export type ComponentState<V = undefined> = {
-	id: number;
-	value?: V;
-	status: Status;
-	rotation: Tweened<number>;
-};
-export type CardState<C extends SvelteComponent, V = undefined> = {
-	state: ComponentState<V>;
-	self: C | null;
-};
-
-export function createCards<C extends SvelteComponent, V = undefined>(
-	count: number = 5
-): Writable<CardState<C, V>[]> {
-	const newStore: CardState<C, V>[] = [];
+import type { CardState } from '$lib/components/PlayingCardThree/card';
+export type Deck = CardState[];
+export default function createCards(
+	count: number = 5,
+	valuation: (index: number) => number = (index) => index
+): Deck {
+	const newDeck: Deck = [];
+	// Some function which will be called for each new card and must return the card formula
 
 	for (let index = 0; index < count; index++) {
-		newStore.push({
-			state: {
-				id: index,
-				status: 'FACEDOWN',
-				rotation: tweened(0, { duration: 1000 })
-			},
-			self: null
-		});
+		const newCard: CardState = {
+			_id: index,
+			_status: 'FACEDOWN',
+			_value: valuation(index)
+		};
+		newDeck.push(newCard);
 	}
-	return writable<CardState<C, V>[]>(newStore);
+	return newDeck;
 }

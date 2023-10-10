@@ -1,18 +1,21 @@
 <script lang="ts">
-	import { createCards } from '$lib/stores/cards';
-	import type PlayingCardTwo from '$lib/components/PlayingCardTwo/playing-card-two.svelte';
-	import Card from '$lib/components/PlayingCardTwo/playing-card-two.svelte';
-	const cards = createCards<PlayingCardTwo>(10);
+	import PlayingCardThree from '$lib/components/PlayingCardThree/playing-card-three.svelte';
+	import ccreateCards, { type Deck } from '$lib/stores/cardss';
+	const deck: Deck = ccreateCards(10);
+	let components: any[] = [];
 </script>
 
-<div class="columns-5 gap-6 overflow-hidden">
-	{#each $cards as card (card.state.id)}
-		<svelte:component
-			this={Card}
-			state={$cards[card.state.id].state}
-			bind:this={$cards[card.state.id].self}
-		>
-			<img class="mx-auto" src="https://placehold.co/250x350" alt={`Card_${card.state.id}`} />
+<button on:click={() => console.log(components)}>Show Array</button>
+<div class="grid grid-flow-row grid-cols-5 gap-4">
+	{#each deck as card, i}
+		<svelte:component this={PlayingCardThree} bind:this={components[i]} bind:state={card}>
+			<img
+				class="w-[250px] h-[350px]"
+				width="250px"
+				height="350px"
+				src="https://placehold.co/250x350"
+				alt="card"
+			/>
 		</svelte:component>
 	{/each}
 </div>

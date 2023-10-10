@@ -1,8 +1,8 @@
 export type Status = 'FACEDOWN' | 'FACEUP';
 export type CardEvents = {
-	reveal: { _id: number; _value?: number };
-	cover: { _id: number; _value?: number };
-	initflip: { _id: number; _value?: number };
+	reveal: CardState;
+	cover: CardState;
+	initflip: CardState;
 };
 export type CardTransition = { rotation: number; fade: number };
 export type CardSlotClasses = {
@@ -12,6 +12,7 @@ export type CardSlotClasses = {
 };
 export type CardState = {
 	_id: number;
-	_value?: number;
-	_status: Status;
+	_image?: string;
+	_value: number;
+	_status?: Status;
 };

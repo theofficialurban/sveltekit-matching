@@ -1,13 +1,38 @@
 <script lang="ts">
-	import Game from '$lib/classes/Game';
-	const { initGame, cards, flippedCards } = new Game();
+	import { DeckTwo } from '$lib/classes/Deck';
+	import PlayingCardThree from '$lib/components/PlayingCardThree/playing-card-three.svelte';
+	import { shuffle } from 'lodash-es';
+	import { flip } from 'svelte/animate';
+	import { quintOut } from 'svelte/easing';
+	import { crossfade } from 'svelte/transition';
+	const [send, recieve] = crossfade({
+		duration: 1000,
+		fallback(node, params) {
+			const style = getComputedStyle(node);
+			const transform = style.transform === 'none' ? '' : style.transform;
+
+			return {
+				duration: 600,
+				easing: quintOut,
+				css: (t) => `
+				transform: ${transform} scale(${t});
+				opacity: ${t}
+			`
+			};
+		}
+	});
+	let card: PlayingCardThree;
+
+	const deck = new DeckTwo({ count: 2, pairs: 0 });
 </script>
 
-<!-- <img
-					class="rounded-xl"
-					src="https://academics.otc.edu/media/uploads/sites/35/2015/10/not-pictured-250x350.png"
-					alt="card"
-				/> -->
-<button class="bg-orange-500" on:click={() => console.log(cards)}>Click</button>
-<button on:click={() => cards[0].$set({ state: { _status: 'FACEUP' } })}>Flipped</button>
-<div use:initGame={{ count: 5 }} class="grid grid-flow-row grid-cols-5 gap-4" />
+<button on:click={() => deck.shuffle()}>State</button>
+{#each deck.cards as card (card._id)}
+	<div in:recieve={{ key: card._id }} out:send={{ key: card._id }} animate:flip={{ duration: 200 }}>
+		<svelte:component
+			this={PlayingCardThree}
+			on:click={() => (card._status = 'FACEUP')}
+			{...card}
+		/>
+	</div>
+{/each}

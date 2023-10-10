@@ -43,6 +43,13 @@
 			}
 		};
 	};
+	$: if (state._status === 'FACEDOWN') {
+		$rotation = 0;
+		$fade = -1;
+	} else if (state._status === 'FACEUP') {
+		$rotation = 360;
+		$fade = 1;
+	}
 </script>
 
 <div
@@ -55,9 +62,11 @@
 >
 	{#if $rotation > 180}
 		<div class="">
-			<div class="">
-				<slot />
-			</div>
+			<img
+				class="rounded-xl"
+				src="https://academics.otc.edu/media/uploads/sites/35/2015/10/not-pictured-250x350.png"
+				alt="card"
+			/>
 			<span class="bottom-0.5 absolute font-extrabold">ID: {state._id}</span>
 			<span class={`top-0 left-0 absolute ${classes.values}`}>{state._value}</span>
 			<span class={`top-0 right-0 absolute ${classes.values}`}>{state._value}</span>

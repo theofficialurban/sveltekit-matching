@@ -49,10 +49,10 @@
 	{#if $rotation > 180}
 		<div class="">
 			<img class="rounded-xl" src={_image} alt="card" />
-			<span class="bottom-0.5 absolute font-extrabold">ID: {_id}</span>
+			<span class="bottom-0.5 p-6 absolute font-extrabold">ID: {_id}</span>
 			<span class={`top-0 left-0 absolute ${classes.values}`}>{_value}</span>
 			<span class={`top-0 right-0 absolute ${classes.values}`}>{_value}</span>
-			<span class="right-0 bottom-0 absolute font-extrabold">{_status}</span>
+			<span class="right-0 bottom-0 p-6 absolute font-extrabold">{_status}</span>
 		</div>
 	{:else if $rotation <= 180}
 		<img class={classes.facedown} src={`${base}/playing-card-235x331.png`} alt={`Card${_id}`} />

@@ -20,21 +20,14 @@
 			};
 		}
 	});
-	let card: PlayingCardThree;
 
-	const deck = new DeckTwo({ count: 10, pairs: 0 });
+	const deck = new DeckTwo({ count: 20, pairs: 0 });
 	const cards = deck.cards;
 	let value: number;
+	$: console.log($cards);
 </script>
 
-{#if $cards.length > 0}
-	<input bind:value />
-	<button on:click={() => console.log(deck.find(value))}>ff</button>
-	<button
-		on:click={() => {
-			deck.re;
-		}}>Shuffle</button
-	>
+{#if $cards}
 	<div class="columns-5">
 		{#each $cards as card (card._id)}
 			<div

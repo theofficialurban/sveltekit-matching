@@ -5,9 +5,11 @@
 	import CardStore from '$lib/stores/cards';
 	import Cover from '$lib/assets/card-cover.png';
 	import Face from '$lib/assets/card-face.png';
+	import Face2 from '$lib/assets/card2.png';
 	import { flip } from 'svelte/animate';
 	import { quintOut } from 'svelte/easing';
 	import { crossfade } from 'svelte/transition';
+	import Dashboard from '$lib/components/Dashboard/dashboard.svelte';
 	const [send, recieve] = crossfade({
 		duration: 1000,
 		fallback(node, params) {
@@ -25,18 +27,11 @@
 		}
 	});
 
-	const deck = new CardStore(5, true);
+	const deck = new CardStore(5, true, [Face, Face2]);
 	const { store, values, pairs } = deck;
 </script>
 
-<div class="container">
-	<Button on:click={() => deck.shuffle(3)} variant="secondary">Shuffle</Button>
-	<Button on:click={() => deck.reset()} variant="secondary">Reset</Button>
-	<Button on:click={() => console.log(values)} variant="secondary">Print Values</Button>
-	<Button on:click={() => console.log(pairs)} variant="secondary">Print Pairs</Button>
-	<Button on:click={() => console.log($store)} variant="secondary">Print Store</Button>
-</div>
-
+<Dashboard {deck} />
 {#if $store.length > 0}
 	<div class="columns-5 mx-auto">
 		{#each $store as card, id (card._id)}
@@ -45,7 +40,6 @@
 					this={PlayingCardThree}
 					on:click={() => (card._status = card._status === 'FACEDOWN' ? 'FACEUP' : 'FACEDOWN')}
 					{...card}
-					_image={Face}
 					_cover={Cover}
 				/>
 			</div>

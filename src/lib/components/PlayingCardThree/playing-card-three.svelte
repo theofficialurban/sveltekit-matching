@@ -25,7 +25,7 @@
 	export let classes: CardSlotClasses = {
 		card: 'w-[250px] h-[350px] relative text-black playing-card p-3',
 		values: 'p-6 text-3xl text-red-600 font-extrabold',
-		facedown: ' object-contain'
+		facedown: 'rounded-xl object-contain'
 	};
 
 	$: if (_status === 'FACEDOWN') {
@@ -63,7 +63,7 @@
 <style>
 	@font-face {
 		font-family: PlayingCards;
-		src: url(./playingcards.TTF);
+		src: url($lib/assets/playingcards.TTF);
 	}
 	.playing-card {
 		font-family: PlayingCards;

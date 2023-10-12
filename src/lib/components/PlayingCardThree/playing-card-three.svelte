@@ -18,6 +18,7 @@
 	export let _id: number;
 	export let _status: Status = 'FACEDOWN';
 	export let _value: number;
+	export let _cover: string = `${base}/playing-card-235x331.png`;
 	export let _image: string =
 		'https://academics.otc.edu/media/uploads/sites/35/2015/10/not-pictured-250x350.png';
 	export const state: CardState = { _id, _status, _value, _image };
@@ -55,7 +56,7 @@
 			<span class="right-0 bottom-0 p-6 absolute font-extrabold">{_status}</span>
 		</div>
 	{:else if $rotation <= 180}
-		<img class={classes.facedown} src={`${base}/playing-card-235x331.png`} alt={`Card${_id}`} />
+		<img class={classes.facedown} src={_cover} alt={`Card${_id}`} />
 	{/if}
 </div>
 

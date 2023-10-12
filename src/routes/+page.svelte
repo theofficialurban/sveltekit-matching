@@ -41,6 +41,8 @@
 					this={PlayingCardThree}
 					on:click={() => (card._status = 'FACEUP')}
 					{...card}
+					_image={'https://i.imgur.com/lREKwn4.png'}
+					_cover={'https://i.imgur.com/i7wqtzx.png'}
 				/>
 			</div>
 		{/each}

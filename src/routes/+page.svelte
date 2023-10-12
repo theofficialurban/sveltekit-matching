@@ -1,6 +1,7 @@
 <script lang="ts">
-	import { DeckTwo } from '$lib/classes/Deck';
 	import PlayingCardThree from '$lib/components/PlayingCardThree/playing-card-three.svelte';
+	import Button from '$lib/components/ui/button/button.svelte';
+	import CardStore from '$lib/stores/cards';
 	import { flip } from 'svelte/animate';
 	import { quintOut } from 'svelte/easing';
 	import { crossfade } from 'svelte/transition';
@@ -21,20 +22,21 @@
 		}
 	});
 
-	const deck = new DeckTwo({ count: 20, pairs: 0 });
-	const cards = deck.cards;
-	let value: number;
-	$: console.log($cards);
+	const deck = new CardStore(5, true);
+	const { store, values, pairs } = deck;
 </script>
 
-{#if $cards}
+<div class="container">
+	<Button on:click={() => deck.shuffle(3)} variant="secondary">Shuffle</Button>
+	<Button on:click={() => console.log(values)} variant="secondary">Print Values</Button>
+	<Button on:click={() => console.log(pairs)} variant="secondary">Print Pairs</Button>
+	<Button on:click={() => console.log($store)} variant="secondary">Print Store</Button>
+</div>
+
+{#if $store.length > 0}
 	<div class="columns-5">
-		{#each $cards as card (card._id)}
-			<div
-				in:recieve={{ key: card._id }}
-				out:send={{ key: card._id }}
-				animate:flip={{ duration: 200 }}
-			>
+		{#each $store as card, id (card._id)}
+			<div in:recieve={{ key: id }} out:send={{ key: id }} animate:flip={{ duration: 200 }}>
 				<svelte:component
 					this={PlayingCardThree}
 					on:click={() => (card._status = 'FACEUP')}

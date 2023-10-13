@@ -5,9 +5,10 @@
 	import type { CardEvents, CardSlotClasses, PlayingCard, Status } from './card';
 	import { createEventDispatcher } from 'svelte';
 	import { base } from '$app/paths';
-	import transitions, { cardflip } from './playing-card';
+	import NotPictured from '$lib/assets/not-pictured.png';
+	import cardflip from './playing-card';
+	import { tweened, type Tweened } from 'svelte/motion';
 	const dispatch = createEventDispatcher<CardEvents>();
-	const { rotation, fade } = transitions;
 
 	/**
 	 * @props Playing Card State
@@ -21,8 +22,7 @@
 	export let _status: Status = 'FACEDOWN';
 	export let _value: number;
 	export let _cover: string = `${base}/playing-card-235x331.png`;
-	export let _image: string =
-		'https://academics.otc.edu/media/uploads/sites/35/2015/10/not-pictured-250x350.png';
+	export let _image: string = NotPictured;
 	const state: PlayingCard = { _id, _status, _value, _image };
 	/**
 	 * @param CardSlotClasses
@@ -35,6 +35,17 @@
 		values: '',
 		facedown: ''
 	};
+
+	/**
+	 * Transitions
+	 * @prop rotation - A tween 0 -> 360 which flips the card
+	 * @prop fade - -1 -> 1 applied with x^2 allowing a fade at 180 to show the flip of the card
+	 */
+	const transitions: { rotation: Tweened<number>; fade: Tweened<number> } = {
+		rotation: tweened(0, { duration: 1000 }),
+		fade: tweened(-1, { duration: 1000 })
+	};
+	const { rotation, fade } = transitions;
 
 	/* Reactively Check for Status Changes and Rotate / Fade Card Accordingly */
 	$: if (_status === 'FACEDOWN') {

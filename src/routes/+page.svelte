@@ -38,7 +38,9 @@
 			<div in:recieve={{ key: id }} out:send={{ key: id }} animate:flip={{ duration: 200 }}>
 				<svelte:component
 					this={PlayingCardThree}
-					on:click={() => (card._status = card._status === 'FACEDOWN' ? 'FACEUP' : 'FACEDOWN')}
+					on:click={() => {
+						card._status = card._status === 'FACEDOWN' ? 'FACEUP' : 'FACEDOWN';
+					}}
 					{...card}
 					_cover={Cover}
 				/>

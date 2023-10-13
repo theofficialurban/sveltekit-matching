@@ -1,6 +1,5 @@
 <script lang="ts">
 	import type CardStore from '$lib/stores/cards';
-	import type { CardState } from '../PlayingCardThree/card';
 	import Button from '../ui/button/button.svelte';
 	import * as Accordion from '../ui/accordion/index';
 	import * as Card from '../ui/card';

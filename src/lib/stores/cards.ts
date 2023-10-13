@@ -1,26 +1,49 @@
-import type { CardState } from '$lib/components/PlayingCardThree/card';
+import type { PlayingCard } from '$lib/components/PlayingCardThree/card';
 import { writable, type Writable, get } from 'svelte/store';
 import Face from '$lib/assets/card-face.png';
 import { uniqueId, random, find, shuffle, sample } from 'lodash-es';
-type Deck = CardState[];
+/* A deck of playing cards */
+type Deck = PlayingCard[];
+/* A map of card values where Card ID -> Card Value */
 type Values = Map<number, number>;
-type Pairs = Map<number, [number, number]>; // Value => [card 1 id, card 2 id]
+/* A map of pairs where Value -> pairs [c1, c2] where c1 and c2 share the value */
+type Pairs = Map<number, [number, number]>;
 
+/**
+ * @class CardStore
+ * @classdesc The store of cards, a deck. Inclues helper methods and functions for interacting with the
+ * store and the cards.
+ * @property @public store - The Svelte Store holding the cards in a hand.
+ * @property @public values - A map of card values where Card ID -> Card Value
+ * @property @public pairs - A map of pairs where Value -> pairs [c1, c2] where c1 and c2 share the value
+ */
 export default class CardStore {
 	public store: Writable<Deck> = writable<Deck>([]);
 	public values: Values = new Map([]);
 	public pairs: Pairs = new Map([]);
+	/**
+	 * @constructor
+	 * @param count The number of cards to create in the deck / hand
+	 * @param hasPairs Whether there should be pairs of cards.
+	 * @param cardFaceImgs A container of images for the card faces, will be randomly assigned to the cards.
+	 * @returns this
+	 */
 	constructor(
 		public count: number = 5,
 		public hasPairs: boolean = false,
 		private cardFaceImgs: string[] = [Face]
 	) {
-		this.#createDeck(this.count, this.hasPairs);
+		this._createDeck(this.count, this.hasPairs);
 		return this;
 	}
-	public find(cardId: number) {
-		return new Promise<CardState>((resolve, reject) => {
-			let result: CardState | undefined;
+	/**
+	 * @public find - Finds a card in the deck
+	 * @param cardId The id of the card to find in the deck
+	 * @returns Promise<PlayingCard>
+	 */
+	public find(cardId: number): Promise<PlayingCard> {
+		return new Promise<PlayingCard>((resolve, reject) => {
+			let result: PlayingCard | undefined;
 			const unsubscriber = this.store.subscribe((deck) => {
 				result = deck.find((c) => c._id == cardId);
 			});
@@ -34,7 +57,11 @@ export default class CardStore {
 			}
 		});
 	}
-	public reset() {
+	/**
+	 * @private reset() - Resets the deck clearing all stores.
+	 * @returns Promise<void>
+	 */
+	private reset() {
 		return new Promise<void>((resolve) => {
 			this.store.set([]);
 			this.values.clear();
@@ -42,10 +69,18 @@ export default class CardStore {
 			resolve();
 		});
 	}
-	public async newHand() {
+	/**
+	 * @public newHand() - Resets the deck and deals a new hand.
+	 * @returns void
+	 */
+	public newHand() {
 		this.reset();
-		return this.#createDeck(this.count, this.hasPairs);
+		return this._createDeck(this.count, this.hasPairs);
 	}
+	/**
+	 * @public revealAll() - Reveals (faceup) all cards
+	 * @returns void
+	 */
 	public revealAll() {
 		return this.store.update((deck) => {
 			deck.forEach((c) => {
@@ -54,17 +89,25 @@ export default class CardStore {
 			return deck;
 		});
 	}
-	public coverAll(delay: number = 100): Promise<void> {
+	/**
+	 * @public coverAll() - Covers all cards (facedown)
+	 * @returns Promise<void>
+	 */
+	public coverAll(): Promise<void> {
 		if (this.isCovered()) return Promise.resolve();
 		return new Promise<void>((resolve) => {
 			this.store.update((deck) => {
 				deck.forEach((card) => (card._status = 'FACEDOWN'));
 				return deck;
 			});
-			setTimeout(() => resolve(), delay);
+			setTimeout(() => resolve(), 1000);
 		});
 	}
-	isCovered(): boolean {
+	/**
+	 * @public isCovered() - Checks whether all cards are covered
+	 * @returns boolean
+	 */
+	public isCovered(): boolean {
 		let faceUp = 0;
 		const deck: Deck = get(this.store);
 		deck.forEach((card) => {
@@ -73,40 +116,62 @@ export default class CardStore {
 		if (faceUp !== 0) return false;
 		return true;
 	}
-	#shuffle() {
+	/**
+	 * @private _shuffle() - Internal helper which shuffles all cards.
+	 */
+	private _shuffle() {
 		this.store.update((d) => {
 			return shuffle(d);
 		});
 	}
-	shuffle(repeat: number = 1, delay: number = 1000) {
-		this.coverAll(delay).then(() => {
+	/**
+	 * @public shuffle(repeat = 1) Shuffles all cards. Public Method
+	 * @param repeat Number of times to shuffle
+	 */
+	public shuffle(repeat: number = 1) {
+		this.coverAll().then(() => {
 			let count = 0;
 			while (count < repeat) {
-				setTimeout(() => this.#shuffle(), count * 500);
+				setTimeout(() => this._shuffle(), count * 500);
 				count++;
 			}
 		});
 	}
-
-	#createDeck(count: number, pairs: boolean) {
+	/**
+	 * @private createDeck(count, pairs) - Creates a new deck
+	 * @param count The number of cards to create.
+	 * @param pairs True | False - Generate pairs or not
+	 * @returns void
+	 */
+	private _createDeck(count: number, pairs: boolean) {
 		for (let index = 0; index < count; index++) {
-			this.#newCard(pairs);
+			this._newCard(pairs);
 		}
 		return;
 	}
-	#valueExists(val: number): boolean {
+	/**
+	 * @private _valueExists(value) - Check to see if a card value is in use
+	 * @param val The card value to check for
+	 * @returns boolean
+	 */
+	private _valueExists(val: number): boolean {
 		const result = find(this.values, (v) => v === val);
 		if (result !== undefined) return true;
 		if (result === undefined) return false;
 		return false;
 	}
-	#newCard(pair: boolean = false): CardState[] {
-		const newCards: CardState[] = [];
+	/**
+	 * @private _newCard() - Creates a single (or pair) of cards.
+	 * @param pair True | False - Generate two instead of one card (pair)
+	 * @returns PlayingCards[] - The cards that were created.
+	 */
+	private _newCard(pair: boolean = false): PlayingCard[] {
+		const newCards: PlayingCard[] = [];
 		// Create a unique ID and a unique new value
 		const newId: number = parseInt(uniqueId());
 		let newVal: number = random(0, 100, false);
 		const randomFace = sample(this.cardFaceImgs);
-		while (this.#valueExists(newVal)) {
+		while (this._valueExists(newVal)) {
 			newVal = random(0, 100, false);
 		}
 		// Create a new card object, if pairs is true, create a pair

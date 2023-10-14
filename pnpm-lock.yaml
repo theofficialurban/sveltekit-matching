@@ -17,6 +17,9 @@ dependencies:
   lucide-svelte:
     specifier: ^0.284.0
     version: 0.284.0(svelte@4.2.1)
+  moment:
+    specifier: ^2.29.4
+    version: 2.29.4
   motion:
     specifier: ^10.16.4
     version: 10.16.4
@@ -1568,6 +1571,10 @@ packages:
     dependencies:
       minimist: 1.2.8
     dev: true
+
+  /moment@2.29.4:
+    resolution: {integrity: sha512-5LC9SOxjSc2HF6vO2CyuTDNivEdoz2IvyJJGj6X8DJ0eFyfszE0QiEd+iXmBvUP3WHxSjFH/vIsA0EN00cgr8w==}
+    dev: false
 
   /motion@10.16.4:
     resolution: {integrity: sha512-wvBeT0sZNgU6Od1aimjywBikqzm5yE97+L9eM/AoLy01AXNPdcnSDVHB3CoR0dGdHMbp/S0A/PjsJfWg0+k8Mg==}

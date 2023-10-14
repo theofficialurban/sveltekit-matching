@@ -3,7 +3,7 @@ import { writable, type Writable, get } from 'svelte/store';
 import Face from '$lib/assets/card-face.png';
 import { uniqueId, random, find, shuffle, sample } from 'lodash-es';
 /* A deck of playing cards */
-type Deck = PlayingCard[];
+export type Deck = PlayingCard[];
 /* A map of card values where Card ID -> Card Value */
 type Values = Map<number, number>;
 /* A map of pairs where Value -> pairs [c1, c2] where c1 and c2 share the value */

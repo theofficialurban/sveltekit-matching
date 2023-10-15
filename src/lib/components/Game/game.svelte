@@ -14,11 +14,12 @@
 		controls,
 		playSize
 	} = game;
-
+	const { store: cardStore } = hand;
 	$: gameOver = $timeStore.gameOver;
 	// 1) Cards are played when flipped,
 </script>
 
+{game.gameWon}
 {#if controls}
 	<Dashboard {game} />
 {/if}
@@ -37,9 +38,41 @@
 	{#if gameOver === 'false' || controls}
 		<CardHand
 			on:faceup={(e) => {
-				if (hand.countFaceUp() >= playSize) return e.preventDefault();
+				if (game.playCard(e.detail)) {
+					console.log(game.played.cards());
+				}
+				if (hand.countFaceUp() >= playSize) {
+					hand.coverAll();
+					game.resetPlayed();
+					return e.preventDefault();
+				}
 			}}
-			on:move={(e) => console.log(e.detail)}
+			on:facedown={(e) => {
+				if (game.c1 !== -1) {
+					if (game.c1._id === e.detail._id) game.resetPlayed(1);
+				}
+				if (game.c2 !== -1) {
+					if (game.c2._id === e.detail._id) game.resetPlayed(2);
+				}
+				console.log(game.played.cards());
+			}}
+			on:move={(e) => {
+				if (game.played.count() === 2) {
+					game.gameResult().then((tf) => {
+						console.log(tf);
+						const c1 = game.c1 !== -1 ? game.c1._id : null;
+						const c2 = game.c2 !== -1 ? game.c2._id : null;
+						console.log(`${c1} ${c2}`);
+						if (tf === true) {
+							game.resetPlayed();
+							hand.removePair([c1, c2]);
+							if ($cardStore.length === 0) {
+								game.gameWon = true;
+							}
+						}
+					});
+				}
+			}}
 			{game}
 		/>
 	{/if}

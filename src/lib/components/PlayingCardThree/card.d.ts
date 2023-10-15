@@ -12,7 +12,7 @@ export type Status = 'FACEDOWN' | 'FACEUP';
 export type CardEvents = {
 	faceup: CardState;
 	facedown: CardState;
-	move: { id: number; prevStatus: Status; currentStatus: Status };
+	move: { _id: number; _value: number; _prevVal: Status; _currentVal: Status };
 };
 export type CardTransition = { rotation: number; fade: number };
 /**

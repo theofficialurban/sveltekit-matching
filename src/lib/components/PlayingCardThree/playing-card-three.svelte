@@ -51,12 +51,22 @@
 			// Flip to face down
 			if (dispatch('facedown', state, { cancelable: true })) {
 				state = { ...state, _status: 'FACEDOWN' };
-				dispatch('move', { id: state._id, prevStatus: 'FACEUP', currentStatus: 'FACEDOWN' });
+				dispatch('move', {
+					_id: state._id,
+					_value: state._value,
+					_prevVal: 'FACEUP',
+					_currentVal: 'FACEDOWN'
+				});
 			}
 		} else if (state._status === 'FACEDOWN') {
 			if (dispatch('faceup', state, { cancelable: true })) {
 				state = { ...state, _status: 'FACEUP' };
-				dispatch('move', { id: state._id, prevStatus: 'FACEDOWN', currentStatus: 'FACEUP' });
+				dispatch('move', {
+					_id: state._id,
+					_value: state._value,
+					_prevVal: 'FACEDOWN',
+					_currentVal: 'FACEUP'
+				});
 			}
 		}
 	};

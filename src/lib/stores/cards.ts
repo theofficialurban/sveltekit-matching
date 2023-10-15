@@ -1,7 +1,7 @@
 import type { PlayingCard } from '$lib/components/PlayingCardThree/card';
 import { writable, type Writable, get } from 'svelte/store';
 import Face from '$lib/assets/card-face.png';
-import { uniqueId, random, find, shuffle, sample } from 'lodash-es';
+import { uniqueId, random, find, shuffle, sample, remove } from 'lodash-es';
 /* A deck of playing cards */
 export type Deck = PlayingCard[];
 /* A map of card values where Card ID -> Card Value */
@@ -221,5 +221,13 @@ export default class CardStore {
 		this.values.set(newId, newVal);
 		this.store.update((s) => [...s, ...newCards]);
 		return newCards;
+	}
+	public removePair(pair: [c1: number | null, c2: number | null]): void {
+		if (pair[0] === null || pair[1] === null) return;
+		this.store.update((s) => {
+			remove(s, (card) => card._id === pair[0] || card._id === pair[1]);
+			console.log(s);
+			return s;
+		});
 	}
 }

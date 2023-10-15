@@ -48,6 +48,12 @@
 					</ol>
 				</Accordion.Content>
 			</Accordion.Item>
+			<Accordion.Item value="3">
+				<Accordion.Trigger>Game Played Cards</Accordion.Trigger>
+				<Accordion.Content>
+					{JSON.stringify(game.played.cards())}
+				</Accordion.Content>
+			</Accordion.Item>
 		</Accordion.Root>
 	</Dialog.Content>
 </Dialog.Root>

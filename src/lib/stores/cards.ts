@@ -70,7 +70,7 @@ export default class CardStore {
 		});
 	}
 	/**
-	 * @public newHand() - Resets the deck and deals a new hand.
+	 * @public @async newHand() - Resets the deck and deals a new hand.
 	 * @returns void
 	 */
 	public newHand() {
@@ -117,6 +117,18 @@ export default class CardStore {
 		return true;
 	}
 	/**
+	 * @public countFaceUp()
+	 * @returns the number of cards that are currently face up
+	 */
+	public countFaceUp(): number {
+		let faceUp: number = 0;
+		const deck: Deck = get(this.store);
+		deck.forEach((card) => {
+			if (card._status === 'FACEUP') faceUp++;
+		});
+		return faceUp;
+	}
+	/**
 	 * @private _shuffle() - Internal helper which shuffles all cards.
 	 */
 	private _shuffle() {
@@ -127,14 +139,24 @@ export default class CardStore {
 	/**
 	 * @public shuffle(repeat = 1) Shuffles all cards. Public Method
 	 * @param repeat Number of times to shuffle
+	 * @returns Promise to be resolved when all are completed
 	 */
 	public shuffle(repeat: number = 1) {
-		this.coverAll().then(() => {
-			let count = 0;
-			while (count < repeat) {
-				setTimeout(() => this._shuffle(), count * 500);
-				count++;
-			}
+		return new Promise<void>((resolve) => {
+			this.coverAll().then(() => {
+				let count = 0;
+				while (count <= repeat) {
+					count++;
+					setTimeout(
+						count <= repeat
+							? () => {
+									this._shuffle();
+							  }
+							: () => resolve(),
+						500 * count
+					);
+				}
+			});
 		});
 	}
 	/**

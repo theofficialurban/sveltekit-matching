@@ -1,19 +1,28 @@
 <script lang="ts">
-	import GameTimer, { type Timer } from '$lib/stores/timer';
+	import type GameTimer from '$lib/stores/timer';
+	import type { Timer } from '$lib/stores/timer';
 	import { createEventDispatcher } from 'svelte';
+	import { throttle } from 'lodash-es';
 	import * as Card from '$components/ui/card';
-	import type { DurationInputArg1, DurationInputArg2 } from 'moment';
-	export let duration: DurationInputArg1 = 10;
-	export let units: DurationInputArg2 = 'seconds';
+	import type Game from '$lib/stores/game';
 	let className = 'mx-auto w-auto';
 	export { className as class };
 	const dispatch = createEventDispatcher<{ start: Timer; end: Timer; stop: null }>();
-	export let timer = GameTimer.newTimer(duration, units, {
-		start: (timer) => dispatch('start', timer),
-		end: (timer) => dispatch('end', timer),
-		stop: () => dispatch('stop')
-	});
+	export let game: Game;
+	const { timer, hand } = game;
+	timer.bindDispatcher(dispatch);
 	const { store } = timer;
+	const handleStart = (e: MouseEvent) => {
+		if ($store.gameOver !== 'notstarted') alert('ERROR');
+		hand.shuffle(5).then(() => {
+			timer.start();
+		});
+	};
+	const handleReset = throttle(async () => {
+		if ($store.gameOver !== 'true') return;
+		await timer.stop();
+		hand.newHand();
+	}, 5000);
 </script>
 
 <Card.Root class={className}>
@@ -38,11 +47,16 @@
 				</span>
 			</slot>
 		{:else if $store.gameOver === 'true'}
-			<slot name="gameOver"
-				><span class="text-red-600 font-extrabold text-3xl"> 😟 GAME OVER 😟 </span></slot
-			>
+			<slot name="gameOver">
+				<span class="text-red-600 font-extrabold text-lg">GAME OVER</span>
+				<button on:click={handleReset}>RESET</button>
+			</slot>
 		{:else if $store.gameOver === 'notstarted'}
-			<slot name="start"><span class="text-red-600 font-extrabold text-3xl"> HIT PLAY </span></slot>
+			<slot name="start"
+				><span class="text-red-600 font-extrabold text-3xl">
+					<button on:click={throttle(handleStart)}>Start</button>
+				</span></slot
+			>
 		{/if}
 	</Card.Content>
 </Card.Root>

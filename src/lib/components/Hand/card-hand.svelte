@@ -1,14 +1,16 @@
 <script lang="ts">
 	import PlayingCardThree from '$lib/components/PlayingCardThree/playing-card-three.svelte';
-	import type CardStore from '$lib/stores/cards';
+
 	import Cover from '$lib/assets/card-cover.png';
 	import { flip } from 'svelte/animate';
 	import { quintOut } from 'svelte/easing';
 	import { crossfade } from 'svelte/transition';
-	export let hand: CardStore;
+	import type Game from '$lib/stores/game';
+	export let game: Game;
+	const { hand, playSize } = game;
 	const [send, recieve] = crossfade({
 		duration: 1000,
-		fallback(node) {
+		fallback(node, param) {
 			const style = getComputedStyle(node);
 			const transform = style.transform === 'none' ? '' : style.transform;
 
@@ -22,7 +24,10 @@
 			};
 		}
 	});
-
+	// on:click={() => {
+	// 					if (hand.countFaceUp() >= playSize && card._status === 'FACEDOWN') return;
+	// 					card._status = card._status === 'FACEDOWN' ? 'FACEUP' : 'FACEDOWN';
+	// 				}}
 	const { store } = hand;
 </script>
 
@@ -32,10 +37,10 @@
 			<div in:recieve={{ key: id }} out:send={{ key: id }} animate:flip={{ duration: 200 }}>
 				<svelte:component
 					this={PlayingCardThree}
-					on:click={() => {
-						card._status = card._status === 'FACEDOWN' ? 'FACEUP' : 'FACEDOWN';
-					}}
-					{...card}
+					on:faceup
+					on:facedown
+					on:move
+					bind:state={card}
 					_cover={Cover}
 				/>
 			</div>

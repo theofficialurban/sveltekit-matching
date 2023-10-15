@@ -18,12 +18,12 @@
 	 * @param _cover - The card cover or design (back)
 	 * @param _image - The card image (face)
 	 */
-	export let _id: number;
-	export let _status: Status = 'FACEDOWN';
-	export let _value: number;
+	// export let _id: number;
+	// export let _status: Status = 'FACEDOWN';
+	// export let _value: number;
 	export let _cover: string = `${base}/playing-card-235x331.png`;
-	export let _image: string = NotPictured;
-	const state: PlayingCard = { _id, _status, _value, _image };
+	// export let _image: string = NotPictured;
+	export let state: PlayingCard;
 	/**
 	 * @param CardSlotClasses
 	 * @property card - The classes applied to the body of the card
@@ -46,43 +46,58 @@
 		fade: tweened(-1, { duration: 1000 })
 	};
 	const { rotation, fade } = transitions;
-
+	const handleFlip = () => {
+		if (state._status === 'FACEUP') {
+			// Flip to face down
+			if (dispatch('facedown', state, { cancelable: true })) {
+				state = { ...state, _status: 'FACEDOWN' };
+				dispatch('move', { id: state._id, prevStatus: 'FACEUP', currentStatus: 'FACEDOWN' });
+			}
+		} else if (state._status === 'FACEDOWN') {
+			if (dispatch('faceup', state, { cancelable: true })) {
+				state = { ...state, _status: 'FACEUP' };
+				dispatch('move', { id: state._id, prevStatus: 'FACEDOWN', currentStatus: 'FACEUP' });
+			}
+		}
+	};
 	/* Reactively Check for Status Changes and Rotate / Fade Card Accordingly */
-	$: if (_status === 'FACEDOWN') {
-		Promise.allSettled([rotation.set(0), fade.set(-1)]).then(() => {
-			dispatch('facedown', state);
-		});
-	} else if (_status === 'FACEUP') {
-		Promise.allSettled([rotation.set(360), fade.set(1)]).then(() => {
-			dispatch('faceup', state);
-		});
+	$: if (state._status === 'FACEDOWN') {
+		rotation.set(0);
+		fade.set(-1);
+	} else if (state._status === 'FACEUP') {
+		rotation.set(360);
+		fade.set(1);
 	}
 </script>
 
 <div
 	role="button"
-	on:click
+	on:click={handleFlip}
 	on:keypress
-	tabindex={_id}
+	tabindex={state._id}
 	use:cardflip={{ rotation: $rotation, fade: $fade }}
 	class={`w-[250px] h-[350px] relative text-black playing-card p-3 ${classes.card}`}
 >
 	{#if $rotation > 180}
 		<div class="">
-			<img class="rounded-xl" src={_image} alt="card" />
-			<span class="bottom-0.5 p-6 absolute font-extrabold">ID: {_id}</span>
+			<img class="rounded-xl" src={state._image} alt="card" />
+			<span class="bottom-0.5 p-6 absolute font-extrabold">ID: {state._id}</span>
 			<span
 				class={`top-0 left-0 absolute p-6 text-3xl text-red-600 font-extrabold ${classes.values}`}
-				>{_value}</span
+				>{state._value}</span
 			>
 			<span
 				class={`top-0 right-0 absolute p-6 text-3xl text-red-600 font-extrabold ${classes.values}`}
-				>{_value}</span
+				>{state._value}</span
 			>
-			<span class="right-0 bottom-0 p-6 absolute font-extrabold">{_status}</span>
+			<span class="right-0 bottom-0 p-6 absolute font-extrabold">{state._status}</span>
 		</div>
 	{:else if $rotation <= 180}
-		<img class={`rounded-xl object-contain ${classes.facedown}`} src={_cover} alt={`Card${_id}`} />
+		<img
+			class={`rounded-xl object-contain ${classes.facedown}`}
+			src={_cover}
+			alt={`Card${state._id}`}
+		/>
 	{/if}
 </div>
 

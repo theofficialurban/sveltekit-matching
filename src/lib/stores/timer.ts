@@ -1,6 +1,7 @@
 import type { Moment, DurationInputArg1, DurationInputArg2, Duration } from 'moment';
 import { writable, type Writable } from 'svelte/store';
 import moment from 'moment';
+import type { EventDispatcher } from 'svelte';
 export interface Timer {
 	start: Moment | null;
 	now: Moment | null;
@@ -24,21 +25,11 @@ export default class GameTimer {
 		duration: null,
 		gameOver: 'notstarted'
 	});
-	private _callbacks: TimerCallbacks = {
-		start: () => null,
-		stop: () => null,
-		end: () => null
-	};
+	private _dispatch: EventDispatcher<{ start: Timer; end: Timer; stop: null }> | null = null;
+
 	static _timer: GameTimer | null = null;
 	private _interval: number | null = null;
-	constructor(
-		duration: DurationInputArg1 = '30',
-		units: DurationInputArg2 = 'seconds',
-		callbacks?: TimerCallbacks
-	) {
-		if (callbacks !== undefined) {
-			this._callbacks = { ...callbacks };
-		}
+	constructor(duration: DurationInputArg1 = '30', units: DurationInputArg2 = 'seconds') {
 		this._duration = { duration, units };
 		return this;
 	}
@@ -51,7 +42,7 @@ export default class GameTimer {
 				if (moment() >= end) {
 					clearInterval(this._interval!);
 					const returnVal: Timer = { ...gt, gameOver: 'true' };
-					if (this._callbacks.end) this._callbacks.end(returnVal);
+					if (this._dispatch) this._dispatch('end', returnVal);
 					return returnVal;
 				}
 				const now = moment();
@@ -60,9 +51,13 @@ export default class GameTimer {
 			});
 		}, 1000);
 	}
+	public bindDispatcher(dispatch: EventDispatcher<{ start: Timer; end: Timer; stop: null }>) {
+		if (this._dispatch) return;
+		this._dispatch = dispatch;
+	}
 	private _gameOver(): Promise<void> {
 		return new Promise<void>((resolve) => {
-			if (this._callbacks.stop) this._callbacks.stop();
+			if (this._dispatch) this._dispatch('stop');
 			this.store.set({
 				start: null,
 				now: null,
@@ -74,8 +69,7 @@ export default class GameTimer {
 		});
 	}
 	public stop() {
-		if (!this._interval) return;
-		clearInterval(this._interval);
+		if (this._interval) clearInterval(this._interval);
 		return this._gameOver();
 	}
 	public start() {
@@ -91,17 +85,20 @@ export default class GameTimer {
 			gameOver: 'false',
 			duration: moment.duration(end.diff(now))
 		};
-		this.store.set(this._store);
-		this._setInterval();
-		if (this._callbacks.start) this._callbacks.start(this._store);
+		if (this._dispatch) {
+			if (this._dispatch('start', this._store, { cancelable: true })) {
+				this.store.set(this._store);
+				this._setInterval();
+				return;
+			}
+		} else {
+			this.store.set(this._store);
+			this._setInterval();
+		}
 	}
-	static newTimer(
-		duration: DurationInputArg1 = '30',
-		units: DurationInputArg2 = 'seconds',
-		callbacks?: TimerCallbacks
-	) {
+	static newTimer(duration: DurationInputArg1 = '30', units: DurationInputArg2 = 'seconds') {
 		if (this._timer) return this._timer;
-		this._timer = new GameTimer(duration, units, callbacks);
+		this._timer = new GameTimer(duration, units);
 		return this._timer;
 	}
 }

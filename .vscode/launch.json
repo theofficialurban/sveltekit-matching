@@ -1,0 +1,11 @@
+{
+	"configurations": [
+		{
+			"type": "chrome",
+			"request": "launch",
+			"name": "Svelte",
+			"url": "http://localhost:5173",
+			"webRoot": "${workspaceFolder}"
+		}
+	]
+}

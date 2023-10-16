@@ -1,9 +1,11 @@
 import type { CardMove, PlayingCard } from '$lib/components/PlayingCard/card';
+import type CardStore from '$lib/stores/cards';
 export type ContainedCard = PlayingCard | CardMove | -1;
 export type CardContainer = [ContainedCard, ContainedCard];
 export default class PlayedCards {
 	public _cardsPlayed: CardContainer = [-1, -1];
-	constructor() {
+
+	constructor(private _hand: CardStore) {
 		return this;
 	}
 	public removePlay(cardId: number): Promise<boolean> {
@@ -74,6 +76,9 @@ export default class PlayedCards {
 	 * @returns void
 	 */
 	public reset() {
+		const { one, two } = this.current;
+		if (one === -1 || two === -1) return;
+		this._hand.faceDown(one._id, two._id);
 		this._cardsPlayed = [-1, -1];
 	}
 	set one(val: ContainedCard) {

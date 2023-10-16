@@ -66,7 +66,7 @@ export function PlayHandler(fn: PlayHandlerCallback): PlayEventHandler {
 export default class Game implements GameSettings {
 	public playSize: number = 2;
 	public controls: boolean = false;
-	public cardsPlayed: PlayedCards = new PlayedCards();
+	public cardsPlayed: PlayedCards;
 	public gameRules: Map<number, Rule> = new Map<number, Rule>([]);
 	public gameWon: boolean = false;
 	public gameHandlers: PlayEventHandlers = {
@@ -76,6 +76,7 @@ export default class Game implements GameSettings {
 	};
 
 	constructor(public hand: CardStore, public timer: GameTimer) {
+		this.cardsPlayed = new PlayedCards(hand);
 		const myRule = () => true;
 		const testingRule: Rule = new Rule('Testing Rule', myRule);
 		this.gameRules.set(testingRule.info.id, testingRule);

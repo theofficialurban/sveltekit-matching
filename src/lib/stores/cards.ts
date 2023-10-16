@@ -222,12 +222,16 @@ export default class CardStore {
 		this.store.update((s) => [...s, ...newCards]);
 		return newCards;
 	}
-	public removePair(pair: [c1: number | null, c2: number | null]): void {
-		if (pair[0] === null || pair[1] === null) return;
-		this.store.update((s) => {
-			remove(s, (card) => card._id === pair[0] || card._id === pair[1]);
-			console.log(s);
-			return s;
+
+	public faceDown(...args: number[]) {
+		args.forEach((i) => {
+			this.store.update((s) => {
+				s.forEach((c) => {
+					if (c._id === i) c._status = 'FACEDOWN';
+					return;
+				});
+				return s;
+			});
 		});
 	}
 }

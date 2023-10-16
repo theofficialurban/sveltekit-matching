@@ -1,6 +1,11 @@
 import type { CardMove, PlayingCard } from '$lib/components/PlayingCard/card';
 import type CardStore from '$lib/stores/cards';
-export type ContainedCard = PlayingCard | CardMove | -1;
+export type Final = {
+	one: CardLikeData;
+	two: CardLikeData;
+};
+export type CardLikeData = PlayingCard | CardMove;
+export type ContainedCard = CardLikeData | -1;
 export type CardContainer = [ContainedCard, ContainedCard];
 export default class PlayedCards {
 	public _cardsPlayed: CardContainer = [-1, -1];
@@ -62,6 +67,15 @@ export default class PlayedCards {
 		if (this._cardsPlayed[1] !== -1) count++;
 		return count;
 	}
+	get final(): Final | null {
+		const one = this._cardsPlayed[0];
+		const two = this._cardsPlayed[1];
+		if (one === -1 || two === -1) return null;
+		return {
+			one,
+			two
+		};
+	}
 	/**
 	 * @property current - The current cards.
 	 */
@@ -75,10 +89,10 @@ export default class PlayedCards {
 	 * @public reset() - Resets the current cards
 	 * @returns void
 	 */
-	public reset() {
+	public reset(resetCards: boolean = false) {
 		const { one, two } = this.current;
 		if (one === -1 || two === -1) return;
-		this._hand.faceDown(one._id, two._id);
+		if (resetCards) this._hand.setStatus('FACEDOWN', one._id, two._id);
 		this._cardsPlayed = [-1, -1];
 	}
 	set one(val: ContainedCard) {

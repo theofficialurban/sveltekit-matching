@@ -4,19 +4,29 @@
 	import Dashboard from '../Dashboard/dashboard.svelte';
 	import TimerComponent from '../GameTimer/game-timer.svelte';
 	import CardHand from '../Hand/card-hand.svelte';
-	import { fromEvent } from 'rxjs';
 	export let game: Game;
 	const { playSize } = game;
 	game.gameHandlers.faceup = PlayHandler((detail, type, preventDefault) => {
 		if (type !== 'faceup') return;
-		if (game.cardsPlayed.count >= playSize) {
-			game.cardsPlayed.reset();
-			return preventDefault();
-		}
+		if (game.hand.countFaceUp() === 2) return preventDefault();
+		if (game.hand.countFaceUp() !== game.cardsPlayed.count) return preventDefault();
 		if (game.cardsPlayed.makePlay({ _id: detail._id, _value: detail._value })) {
-			return;
+			if (game.cardsPlayed.count === 2) {
+				game
+					.gameResult()
+					.then(({ one, two }) => {
+						game.hand.removeCards(one._id, two._id);
+						game.cardsPlayed.reset();
+					})
+					.catch(() => setTimeout(() => game.cardsPlayed.reset(true), 1000));
+			}
+		} else {
+			if (game.cardsPlayed.count === 2) {
+				game.cardsPlayed.reset();
+				preventDefault();
+				return;
+			}
 		}
-		return;
 	});
 	game.gameHandlers.facedown = PlayHandler((detail, type) => {
 		if (type !== 'facedown') return;

@@ -1,4 +1,4 @@
-import type { PlayingCard } from '$lib/components/PlayingCard/card';
+import type { PlayingCard, Status } from '$lib/components/PlayingCard/card';
 import { writable, type Writable, get } from 'svelte/store';
 import Face from '$lib/assets/card-face.png';
 import { uniqueId, random, find, shuffle, sample, remove } from 'lodash-es';
@@ -222,12 +222,22 @@ export default class CardStore {
 		this.store.update((s) => [...s, ...newCards]);
 		return newCards;
 	}
-
-	public faceDown(...args: number[]) {
+	public removeCards(...args: number[]): Promise<void> {
+		return new Promise<void>((resolve) => {
+			this.store.update((s) => {
+				remove(s, (card) => {
+					return args.includes(card._id);
+				});
+				return s;
+			});
+			resolve();
+		});
+	}
+	public setStatus(status: Status, ...args: number[]) {
 		args.forEach((i) => {
 			this.store.update((s) => {
 				s.forEach((c) => {
-					if (c._id === i) c._status = 'FACEDOWN';
+					if (c._id === i) c._status = status;
 					return;
 				});
 				return s;

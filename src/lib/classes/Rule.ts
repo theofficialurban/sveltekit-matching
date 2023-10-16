@@ -1,17 +1,14 @@
 import { uniqueId } from 'lodash-es';
-import type CardStore from '$lib/stores/cards';
-import type GameTimer from '$lib/stores/timer';
 import type Game from './Game';
-import type PlayedCards from './Played';
 
 /**
  * @type GameRule
  * @description A rule for game win. All rules must evaluate to true for a win.
  */
 export type GameRule =
-	| ((cardsPlayed: PlayedCards, hand: CardStore, timer: GameTimer) => boolean | Promise<boolean>)
-	| (() => true)
-	| (() => void);
+	| ((game: Game) => Promise<boolean>)
+	| (() => Promise<boolean>)
+	| (() => Promise<void>);
 
 /**
  * @class Rule - A rule for the game, all rules must evaluate to true for a win.
@@ -28,13 +25,11 @@ export class Rule {
 	 * @param game the game to run the rule against.
 	 * @returns Promise<boolean>
 	 */
-	public attempt(game: Game): Promise<boolean> {
+	public attempt(game: Game): Promise<void> {
 		return new Promise((resolve, reject) => {
-			if (this._rule(game.cardsPlayed, game.hand, game.timer)) {
-				return resolve(true);
-			} else {
-				reject(false);
-			}
+			this._rule(game)
+				.then(() => resolve())
+				.catch(() => reject(`Rule ID: ${this._id} | Name: ${this.ruleName} | FAILED`));
 		});
 	}
 	/**

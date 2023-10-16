@@ -1,8 +1,8 @@
 import type CardStore from '$lib/stores/cards';
 import type GameTimer from '$lib/stores/timer';
 import type { CardMove } from '$lib/components/PlayingCard/card';
-import { Rule } from './Rule';
-import PlayedCards from './Played';
+import { Rule, type GameRule } from './Rule';
+import PlayedCards, { type Final } from './Played';
 import type { ComponentEvents } from 'svelte';
 import type PlayingCard from '$lib/components/PlayingCard/playing-card.svelte';
 /**
@@ -21,12 +21,11 @@ export interface GameSettings {
 	controls: boolean;
 	cardsPlayed: PlayedCards;
 	gameWon: boolean;
-	gameRules: Map<number, Rule>;
+	gameRules: Rule[];
 	hand: CardStore;
 	timer: GameTimer;
 	gameHandlers: PlayEventHandlers;
 }
-
 export type CardComponentEvents =
 	| ComponentEvents<PlayingCard>['facedown']
 	| ComponentEvents<PlayingCard>['faceup']
@@ -67,7 +66,7 @@ export default class Game implements GameSettings {
 	public playSize: number = 2;
 	public controls: boolean = false;
 	public cardsPlayed: PlayedCards;
-	public gameRules: Map<number, Rule> = new Map<number, Rule>([]);
+	public gameRules: Rule[] = [];
 	public gameWon: boolean = false;
 	public gameHandlers: PlayEventHandlers = {
 		facedown: () => console.log('Face Down'),
@@ -77,24 +76,37 @@ export default class Game implements GameSettings {
 
 	constructor(public hand: CardStore, public timer: GameTimer) {
 		this.cardsPlayed = new PlayedCards(hand);
-		const myRule = () => true;
+		const myRule: GameRule = (game) => {
+			return new Promise<boolean>((resolve, reject) => {
+				const {
+					cardsPlayed: { final }
+				} = game;
+				if (final) {
+					const { one, two } = final;
+					return one._value === two._value ? resolve(true) : reject();
+				}
+			});
+		};
 		const testingRule: Rule = new Rule('Testing Rule', myRule);
-		this.gameRules.set(testingRule.info.id, testingRule);
+		this.gameRules.push(testingRule);
 		return this;
 	}
 	private _err(message: string) {
 		throw new Error(message);
 	}
-	public gameResult(): Promise<boolean> {
-		return new Promise<boolean>((resolve, reject) => {
-			this.gameRules.forEach((rule) => {
-				rule.attempt(this).catch(() => {
-					reject();
-					this._err('Rule Failed');
-				});
-				return;
-			});
-			resolve(true);
+	public gameResult(): Promise<Final> {
+		return new Promise<Final>((resolve, reject) => {
+			const rules: Rule[] = this.gameRules;
+			const promises: Promise<void>[] = [];
+			rules.forEach((rule) => promises.push(rule.attempt(this)));
+			Promise.all(promises).then(
+				() => {
+					if (this.cardsPlayed.final) {
+						resolve(this.cardsPlayed.final);
+					}
+				},
+				() => reject('Rule(s) Failed')
+			);
 		});
 	}
 	get handlers() {
@@ -118,7 +130,7 @@ export default class Game implements GameSettings {
 	}
 
 	public startGame() {
-		if (this.gameRules.size === 0) return this._err('No Game Rules.');
+		if (this.gameRules.length === 0) return this._err('No Game Rules.');
 		return this.timer.start();
 	}
 }

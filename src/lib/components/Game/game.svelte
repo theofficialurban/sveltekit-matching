@@ -1,25 +1,45 @@
 <script lang="ts">
-	import type { Deck } from '$lib/stores/cards';
-	import type CardStore from '$lib/stores/cards';
-	import type GameTimer from '$lib/stores/timer';
-	import type Game from '$lib/stores/game';
+	import type Game from '$lib/classes/Game';
+	import { PlayHandler } from '$lib/classes/Game';
 	import Dashboard from '../Dashboard/dashboard.svelte';
 	import TimerComponent from '../GameTimer/game-timer.svelte';
 	import CardHand from '../Hand/card-hand.svelte';
-	import type { GameSettings } from './game';
 	export let game: Game;
+	const { playSize } = game;
+	game.gameHandlers.faceup = PlayHandler((detail, type, preventDefault) => {
+		if (type !== 'faceup') return;
+		if (game.cardsPlayed.count >= playSize) {
+			return preventDefault();
+		}
+		if (game.cardsPlayed.makePlay({ _id: detail._id, _value: detail._value })) {
+			return;
+		}
+		return;
+	});
+	game.gameHandlers.facedown = PlayHandler((detail, type) => {
+		if (type !== 'facedown') return;
+		try {
+			game.cardsPlayed.removePlay(detail._id);
+		} catch (error) {
+			console.error(error);
+		}
+		console.table(game.cardsPlayed.current);
+	});
 	const {
-		hand,
-		timer: { store: timeStore },
+		gameWon,
+		timer: { store: timerStore },
 		controls,
-		playSize
+		cardsPlayed: { removePlay },
+		handlers: {
+			game: { handleFaceDown, handleFaceUp, handleMove },
+			timer: { handleEnd, handleStart, handleStop }
+		}
 	} = game;
-	const { store: cardStore } = hand;
-	$: gameOver = $timeStore.gameOver;
-	// 1) Cards are played when flipped,
 </script>
 
-{game.gameWon}
+<div class="text-3xl text-center">
+	Game Won Status: <span class=" text-teal-500">{gameWon}</span>
+</div>
 {#if controls}
 	<Dashboard {game} />
 {/if}
@@ -27,53 +47,13 @@
 	Error Initializing Game
 {:else}
 	<TimerComponent
-		on:start={(e) => {
-			console.log('Started');
-		}}
-		on:stop={() => console.log('STOP')}
-		on:end={() => console.log('END')}
+		on:start={handleStart}
+		on:stop={handleStop}
+		on:end={handleEnd}
 		class="w-[200px] text-md fixed right-6 bg-black bg-opacity-75 z-50"
 		{game}
 	/>
-	{#if gameOver === 'false' || controls}
-		<CardHand
-			on:faceup={(e) => {
-				if (game.playCard(e.detail)) {
-					console.log(game.played.cards());
-				}
-				if (hand.countFaceUp() >= playSize) {
-					hand.coverAll();
-					game.resetPlayed();
-					return e.preventDefault();
-				}
-			}}
-			on:facedown={(e) => {
-				if (game.c1 !== -1) {
-					if (game.c1._id === e.detail._id) game.resetPlayed(1);
-				}
-				if (game.c2 !== -1) {
-					if (game.c2._id === e.detail._id) game.resetPlayed(2);
-				}
-				console.log(game.played.cards());
-			}}
-			on:move={(e) => {
-				if (game.played.count() === 2) {
-					game.gameResult().then((tf) => {
-						console.log(tf);
-						const c1 = game.c1 !== -1 ? game.c1._id : null;
-						const c2 = game.c2 !== -1 ? game.c2._id : null;
-						console.log(`${c1} ${c2}`);
-						if (tf === true) {
-							game.resetPlayed();
-							hand.removePair([c1, c2]);
-							if ($cardStore.length === 0) {
-								game.gameWon = true;
-							}
-						}
-					});
-				}
-			}}
-			{game}
-		/>
+	{#if $timerStore.gameOver === 'false' || controls}
+		<CardHand on:faceup={handleFaceUp} on:facedown={handleFaceDown} on:move={handleMove} {game} />
 	{/if}
 {/if}

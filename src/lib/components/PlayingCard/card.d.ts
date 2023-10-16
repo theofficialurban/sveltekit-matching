@@ -3,6 +3,8 @@
  */
 export type Status = 'FACEDOWN' | 'FACEUP';
 
+export type CardMove = { _id: number; _value: number; _prevStatus: Status; _currentStatus: Status };
+
 /**
  * @typedef CardEvents
  * @event faceup - Event fired when the card COMPLETELY transitions to faceup
@@ -10,9 +12,9 @@ export type Status = 'FACEDOWN' | 'FACEUP';
  * @event flipstart - Event fired when the flip is initiated
  */
 export type CardEvents = {
-	faceup: CardState;
-	facedown: CardState;
-	move: { _id: number; _value: number; _prevVal: Status; _currentVal: Status };
+	faceup: PlayingCard;
+	facedown: PlayingCard;
+	move: CardMove;
 };
 export type CardTransition = { rotation: number; fade: number };
 /**

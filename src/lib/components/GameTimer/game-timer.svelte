@@ -1,13 +1,13 @@
 <script lang="ts">
-	import type GameTimer from '$lib/stores/timer';
-	import type { Timer } from '$lib/stores/timer';
 	import { createEventDispatcher } from 'svelte';
 	import { throttle } from 'lodash-es';
 	import * as Card from '$components/ui/card';
-	import type Game from '$lib/stores/game';
+	import type Game from '$lib/classes/Game';
+	import type { TimerEvents } from '$lib/stores/timer';
 	let className = 'mx-auto w-auto';
 	export { className as class };
-	const dispatch = createEventDispatcher<{ start: Timer; end: Timer; stop: null }>();
+
+	const dispatch = createEventDispatcher<TimerEvents>();
 	export let game: Game;
 	const { timer, hand } = game;
 	timer.bindDispatcher(dispatch);

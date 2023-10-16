@@ -1,4 +1,4 @@
-import type { PlayingCard } from '$lib/components/PlayingCardThree/card';
+import type { PlayingCard } from '$lib/components/PlayingCard/card';
 import { writable, type Writable, get } from 'svelte/store';
 import Face from '$lib/assets/card-face.png';
 import { uniqueId, random, find, shuffle, sample, remove } from 'lodash-es';

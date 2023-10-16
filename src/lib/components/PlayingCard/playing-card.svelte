@@ -49,23 +49,23 @@
 	const handleFlip = () => {
 		if (state._status === 'FACEUP') {
 			// Flip to face down
-			if (dispatch('facedown', state, { cancelable: true })) {
+			if (dispatch('facedown', { _id: state._id, _value: state._value }, { cancelable: true })) {
 				state = { ...state, _status: 'FACEDOWN' };
 				dispatch('move', {
 					_id: state._id,
 					_value: state._value,
-					_prevVal: 'FACEUP',
-					_currentVal: 'FACEDOWN'
+					_prevStatus: 'FACEUP',
+					_currentStatus: 'FACEDOWN'
 				});
 			}
 		} else if (state._status === 'FACEDOWN') {
-			if (dispatch('faceup', state, { cancelable: true })) {
+			if (dispatch('faceup', { _id: state._id, _value: state._value }, { cancelable: true })) {
 				state = { ...state, _status: 'FACEUP' };
 				dispatch('move', {
 					_id: state._id,
 					_value: state._value,
-					_prevVal: 'FACEDOWN',
-					_currentVal: 'FACEUP'
+					_prevStatus: 'FACEDOWN',
+					_currentStatus: 'FACEUP'
 				});
 			}
 		}

@@ -1,88 +1,23 @@
-import type { Moment, DurationInputArg1, DurationInputArg2, Duration } from 'moment';
+import type { DurationInputArg1, DurationInputArg2 } from 'moment';
 import { writable, type Writable } from 'svelte/store';
 import moment from 'moment';
-import type { ComponentEvents, EventDispatcher } from 'svelte';
-import type GameTimerComponent from '$lib/components/GameTimer/game-timer.svelte';
+import type { Timer } from '$lib/types/Timer';
+import TimerHandler from '$lib/classes/handlers/TimerHandler';
 
-/**
- * @interface Timer - The Timer object carried in the timer store.
- * @prop start - Start time of the timer
- * @prop now - Now
- * @prop end - The end time of the timer
- * @prop duration - The duration of the timer
- * @prop secondsLeft - The number of seconds remaining in the timer
- * @prop gameOver - The game over status
- */
-export interface Timer {
-	start: Moment | null;
-	now: Moment | null;
-	end: Moment | null;
-	duration: Duration | null;
-	secondsLeft?: number;
-	gameOver: 'true' | 'false' | 'notstarted';
-}
-export type TimerComponentEvent =
-	| ComponentEvents<GameTimerComponent>['end']
-	| ComponentEvents<GameTimerComponent>['start']
-	| ComponentEvents<GameTimerComponent>['stop'];
-/**
- * @type TimerEvents - Events fired by game-timer.svelte
- */
-export type TimerEvents = { start: Timer; end: Timer; stop: null };
-/**
- * @type TimerEventHandler - Custom event handler.
- */
-export type TimerEventHandler = (e: TimerComponentEvent) => void | Promise<void>;
-/**
- * @type TimerEventHandlers - Contains the events for the timer.
- */
-export type TimerEventHandlers = {
-	start: TimerEventHandler;
-	stop: TimerEventHandler;
-	end: TimerEventHandler;
-};
-/**
- * @function TimerHandler()
- * @param fn A callback function that accepts the detail from the event and the type.
- * @param preventDefault boolean indicating whether to prevent action.
- * @returns A timer event handler.
- */
-export function TimerHandler(
-	fn: (d: TimerEvents, type: string) => void | Promise<void>,
-	preventDefault: boolean = false
-): TimerEventHandler {
-	const handler: TimerEventHandler = ({ detail, type, preventDefault: prevent }: CustomEvent) => {
-		if (preventDefault) return prevent();
-		return fn(detail, type);
-	};
-	return handler;
-}
-/**
- * @class GameTimer
- * @classdesc The game timer with the timer store.
- * @properties
- * 		@static _timer - Singleton instance for the timer.
- * 		@private _store - A non-store object used to setup the store for each timer.
- * 		@private _dispatch - The dispatcher from the game-timer.svelte component.
- * 		@private _interval - The setInterval() id
- * 		@public duration - The duration (10 seconds , etc) for the timer.
- * 		@public store - The svelte store for the timer.
- * 		@public timerHandlers - The event handlers.
- */
 export default class GameTimer {
 	static _timer: GameTimer | null = null;
-	private _store: Timer | null = null;
-	private _dispatch: EventDispatcher<TimerEvents> | null = null;
-	private _interval: number | null = null;
+	private _store: Timer['Store'] | null = null;
+	private _dispatch: Timer['Dispatcher'] | null = null;
+	private _interval: NodeJS.Timeout | null = null;
 	public duration: { duration: DurationInputArg1; units: DurationInputArg2 } | null = null;
-	public store: Writable<Timer> = writable<Timer>({
+	public store: Writable<Timer['Store']> = writable<Timer['Store']>({
 		start: null,
 		now: null,
 		end: null,
 		duration: null,
 		gameOver: 'notstarted'
 	});
-	private timerHandlers: TimerEventHandlers = {
+	private timerHandlers: Timer['Handlers'] = {
 		start: () => console.log('Start'),
 		stop: () => console.log('Stop'),
 		end: () => console.log('End')
@@ -98,14 +33,14 @@ export default class GameTimer {
 			handleEnd: this.timerHandlers.end
 		};
 	}
-	set handleStart(fn: TimerEventHandler) {
-		this.timerHandlers.start = fn;
+	set handleStart(fn: Timer['EventCallback']) {
+		this.timerHandlers.start = TimerHandler(fn);
 	}
-	set handleStop(fn: TimerEventHandler) {
-		this.timerHandlers.stop = fn;
+	set handleStop(fn: Timer['EventCallback']) {
+		this.timerHandlers.stop = TimerHandler(fn);
 	}
-	set handleEnd(fn: TimerEventHandler) {
-		this.timerHandlers.end = fn;
+	set handleEnd(fn: Timer['EventCallback']) {
+		this.timerHandlers.end = TimerHandler(fn);
 	}
 	/**
 	 * @private _setInterval sets the interval which counts seconds.
@@ -115,10 +50,10 @@ export default class GameTimer {
 		if (!this._store?.start || !this._store.end) return;
 		const { end } = this._store;
 		this._interval = setInterval(() => {
-			this.store.update((gt) => {
+			this.store.update((gt: Timer['Store']) => {
 				if (moment() >= end) {
 					clearInterval(this._interval!);
-					const returnVal: Timer = { ...gt, gameOver: 'true' };
+					const returnVal: Timer['Store'] = { ...gt, gameOver: 'true' };
 					if (this._dispatch) this._dispatch('end', returnVal);
 					return returnVal;
 				}
@@ -133,7 +68,7 @@ export default class GameTimer {
 	 * @param dispatch - dispatch function from createEventDispatcher() in game-timer.svelte
 	 * @returns
 	 */
-	public bindDispatcher(dispatch: EventDispatcher<TimerEvents>) {
+	public bindDispatcher(dispatch: Timer['Dispatcher']) {
 		if (this._dispatch) return;
 		this._dispatch = dispatch;
 	}

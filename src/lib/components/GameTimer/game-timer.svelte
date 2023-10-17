@@ -1,17 +1,20 @@
 <script lang="ts">
-	import { createEventDispatcher } from 'svelte';
+	import { SvelteComponent, createEventDispatcher } from 'svelte';
 	import { throttle } from 'lodash-es';
 	import * as Card from '$components/ui/card';
 	import type Game from '$lib/classes/Game';
-	import type { TimerEvents } from '$lib/stores/timer';
+	import type { Timer } from '$lib/types/Timer';
+	export class TimerComponent extends SvelteComponent<Timer['Props'], Timer['Events']> {}
 	let className = 'mx-auto w-auto';
-	export { className as class };
 
-	const dispatch = createEventDispatcher<TimerEvents>();
+	export { className as class };
 	export let game: Game;
+
+	const dispatch = createEventDispatcher<Timer['Events']>();
 	const { timer, hand } = game;
 	timer.bindDispatcher(dispatch);
 	const { store } = timer;
+
 	const handleStart = (e: MouseEvent) => {
 		if ($store.gameOver !== 'notstarted') alert('ERROR');
 		hand.shuffle(5).then(() => {

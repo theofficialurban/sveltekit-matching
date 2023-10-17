@@ -1,12 +1,11 @@
 <script lang="ts">
 	import type Game from '$lib/classes/Game';
-	import { PlayHandler } from '$lib/classes/Game';
 	import Dashboard from '../Dashboard/dashboard.svelte';
 	import TimerComponent from '../GameTimer/game-timer.svelte';
 	import CardHand from '../Hand/card-hand.svelte';
 	export let game: Game;
 	const { playSize } = game;
-	game.gameHandlers.faceup = PlayHandler((detail, type, preventDefault) => {
+	game.handleFaceUp = (detail, type, preventDefault) => {
 		if (type !== 'faceup') return;
 		if (game.hand.countFaceUp() === 2) return preventDefault();
 		if (game.hand.countFaceUp() !== game.cardsPlayed.count) return preventDefault();
@@ -27,8 +26,8 @@
 				return;
 			}
 		}
-	});
-	game.gameHandlers.facedown = PlayHandler((detail, type) => {
+	};
+	game.handleFaceDown = (detail, type) => {
 		if (type !== 'facedown') return;
 		try {
 			game.cardsPlayed.removePlay(detail._id);
@@ -36,7 +35,7 @@
 			console.error(error);
 		}
 		console.table(game.cardsPlayed.current);
-	});
+	};
 	const {
 		gameWon,
 		timer: { store: timerStore },

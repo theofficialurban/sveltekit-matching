@@ -1,14 +1,10 @@
-import type { PlayingCard, Status } from '$lib/components/PlayingCard/card';
-import { writable, type Writable, get } from 'svelte/store';
+import type PlayingCard from '$lib/types/Card';
+import { writable, get, type Writable } from 'svelte/store';
 import Face from '$lib/assets/card-face.png';
 import { uniqueId, random, find, shuffle, sample, remove } from 'lodash-es';
-/* A deck of playing cards */
-export type Deck = PlayingCard[];
-/* A map of card values where Card ID -> Card Value */
-type Values = Map<number, number>;
-/* A map of pairs where Value -> pairs [c1, c2] where c1 and c2 share the value */
-type Pairs = Map<number, [number, number]>;
-
+import NotPictured from '$lib/assets/not-pictured.png';
+type Card = PlayingCard['State'];
+type Deck = PlayingCard['Deck'];
 /**
  * @class CardStore
  * @classdesc The store of cards, a deck. Inclues helper methods and functions for interacting with the
@@ -19,8 +15,8 @@ type Pairs = Map<number, [number, number]>;
  */
 export default class CardStore {
 	public store: Writable<Deck> = writable<Deck>([]);
-	public values: Values = new Map([]);
-	public pairs: Pairs = new Map([]);
+	public values: PlayingCard['Values'] = new Map([]);
+	public pairs: PlayingCard['Pairs'] = new Map([]);
 	/**
 	 * @constructor
 	 * @param count The number of cards to create in the deck / hand
@@ -41,9 +37,9 @@ export default class CardStore {
 	 * @param cardId The id of the card to find in the deck
 	 * @returns Promise<PlayingCard>
 	 */
-	public find(cardId: number): Promise<PlayingCard> {
-		return new Promise<PlayingCard>((resolve, reject) => {
-			let result: PlayingCard | undefined;
+	public find(cardId: number): Promise<Card> {
+		return new Promise<Card>((resolve, reject) => {
+			let result: Card | undefined;
 			const unsubscriber = this.store.subscribe((deck) => {
 				result = deck.find((c) => c._id == cardId);
 			});
@@ -70,7 +66,7 @@ export default class CardStore {
 		});
 	}
 	/**
-	 * @public @async newHand() - Resets the deck and deals a new hand.
+	 * @public newHand() - Resets the deck and deals a new hand.
 	 * @returns void
 	 */
 	public newHand() {
@@ -187,8 +183,8 @@ export default class CardStore {
 	 * @param pair True | False - Generate two instead of one card (pair)
 	 * @returns PlayingCards[] - The cards that were created.
 	 */
-	private _newCard(pair: boolean = false): PlayingCard[] {
-		const newCards: PlayingCard[] = [];
+	private _newCard(pair: boolean = false): Card[] {
+		const newCards: Card[] = [];
 		// Create a unique ID and a unique new value
 		const newId: number = parseInt(uniqueId());
 		let newVal: number = random(0, 100, false);
@@ -201,7 +197,7 @@ export default class CardStore {
 			_id: newId,
 			_value: newVal,
 			_status: 'FACEDOWN',
-			_image: randomFace
+			_image: randomFace ?? NotPictured
 		});
 		// If pairs, add another new card with the same value
 		if (pair === true) {
@@ -211,7 +207,7 @@ export default class CardStore {
 				_id: pairId,
 				_value: newVal,
 				_status: 'FACEDOWN',
-				_image: randomFace
+				_image: randomFace ?? NotPictured
 			});
 			// Add the pair into the pairs object where - Some Value => [card id 1, card id 2]
 			this.pairs.set(newVal, [newId, pairId]);
@@ -233,7 +229,7 @@ export default class CardStore {
 			resolve();
 		});
 	}
-	public setStatus(status: Status, ...args: number[]) {
+	public setStatus(status: PlayingCard['Status'], ...args: number[]) {
 		args.forEach((i) => {
 			this.store.update((s) => {
 				s.forEach((c) => {

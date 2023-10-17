@@ -1,10 +1,10 @@
 import type CardStore from '$lib/stores/cards';
 import type GameTimer from '$lib/stores/timer';
-import type { CardMove } from '$lib/components/PlayingCard/card';
 import { Rule, type GameRule } from './Rule';
 import PlayedCards, { type Final } from './Played';
-import type { ComponentEvents } from 'svelte';
-import type PlayingCard from '$lib/components/PlayingCard/playing-card.svelte';
+import type PlayingCard from '$lib/types/Card';
+import FlipHandler from './handlers/FlipHandler';
+
 /**
  * @interface GameSettings - The interface implemented by the Game class.
  *  @property playSize - The number of cards able to be face up at one time.
@@ -22,53 +22,22 @@ export interface GameSettings {
 	cardsPlayed: PlayedCards;
 	gameWon: boolean;
 	gameRules: Rule[];
-	hand: CardStore;
+	hand: PlayingCard['Store'];
 	timer: GameTimer;
-	gameHandlers: PlayEventHandlers;
-}
-export type CardComponentEvents =
-	| ComponentEvents<PlayingCard>['facedown']
-	| ComponentEvents<PlayingCard>['faceup']
-	| ComponentEvents<PlayingCard>['move'];
-/**
- * @typedef PlayEventHandler
- * @description A handler for the custom card events from the playing-card.svelte component.
- */
-export type PlayEventHandler = (e: CardComponentEvents) => void | Promise<void>;
-/**
- * @typedef PlayEventHandlers
- * @description The object containing the three handlers for card plays.
- */
-export type PlayEventHandlers = {
-	faceup: PlayEventHandler;
-	facedown: PlayEventHandler;
-	move: PlayEventHandler;
-};
-export type PlayHandlerCallback = (
-	d: { _id: number; _value: number } | CardMove,
-	type: string,
-	preventDefault: () => void
-) => void | Promise<void>;
-/**
- * @function PlayHandler()
- * @param fn A callback function that accepts the detail from the event.
- * @param preventDefault boolean indicating whether or not to prevent default action.
- * @returns The event handler.
- */
-export function PlayHandler(fn: PlayHandlerCallback): PlayEventHandler {
-	const handler: PlayEventHandler = ({ type, detail, preventDefault }: CardComponentEvents) => {
-		return fn(detail, type, preventDefault);
+	gameHandlers: {
+		facedown: PlayingCard['Events']['Handler'];
+		faceup: PlayingCard['Events']['Handler'];
+		move: PlayingCard['Events']['Handler'];
 	};
-	return handler;
 }
 
 export default class Game implements GameSettings {
-	public playSize: number = 2;
-	public controls: boolean = false;
+	public playSize: GameSettings['playSize'] = 2;
+	public controls: GameSettings['controls'] = false;
 	public cardsPlayed: PlayedCards;
-	public gameRules: Rule[] = [];
-	public gameWon: boolean = false;
-	public gameHandlers: PlayEventHandlers = {
+	public gameRules: GameSettings['gameRules'] = [];
+	public gameWon: GameSettings['gameWon'] = false;
+	public gameHandlers: GameSettings['gameHandlers'] = {
 		facedown: () => console.log('Face Down'),
 		faceup: () => console.log('Face Up'),
 		move: () => console.log('Move')
@@ -119,14 +88,14 @@ export default class Game implements GameSettings {
 			timer: this.timer.handlers
 		};
 	}
-	set handleMove(fn: PlayEventHandler) {
-		this.gameHandlers.move = fn;
+	set handleMove(fn: PlayingCard['Events']['Callback']) {
+		this.gameHandlers.move = FlipHandler(fn);
 	}
-	set handleFaceUp(fn: PlayEventHandler) {
-		this.gameHandlers.faceup = fn;
+	set handleFaceUp(fn: PlayingCard['Events']['Callback']) {
+		this.gameHandlers.faceup = FlipHandler(fn);
 	}
-	set handleFaceDown(fn: PlayEventHandler) {
-		this.gameHandlers.facedown = fn;
+	set handleFaceDown(fn: PlayingCard['Events']['Callback']) {
+		this.gameHandlers.facedown = FlipHandler(fn);
 	}
 
 	public startGame() {

@@ -2,13 +2,16 @@
 <svelte:options accessors={true} />
 
 <script lang="ts">
-	import type { CardEvents, CardSlotClasses, PlayingCard, Status } from './card';
-	import { createEventDispatcher } from 'svelte';
+	import type PlayingCard from '$lib/types/Card';
+	import { createEventDispatcher, SvelteComponent } from 'svelte';
 	import { base } from '$app/paths';
-	import NotPictured from '$lib/assets/not-pictured.png';
 	import cardflip from './playing-card';
 	import { tweened, type Tweened } from 'svelte/motion';
-	const dispatch = createEventDispatcher<CardEvents>();
+	export class PlayingCardComponent extends SvelteComponent<
+		{ state: PlayingCard['State']; _cover: string },
+		PlayingCard['Events']['DispatchTypes']
+	> {}
+	const dispatch = createEventDispatcher<PlayingCard['Events']['DispatchTypes']>();
 
 	/**
 	 * @props Playing Card State
@@ -23,14 +26,14 @@
 	// export let _value: number;
 	export let _cover: string = `${base}/playing-card-235x331.png`;
 	// export let _image: string = NotPictured;
-	export let state: PlayingCard;
+	export let state: PlayingCard['State'];
 	/**
 	 * @param CardSlotClasses
 	 * @property card - The classes applied to the body of the card
 	 * @property values - The classes applied to the numerical values of the card
 	 * @property facedown - The classes applied to the card while facedown
 	 */
-	export let classes: CardSlotClasses = {
+	export let classes: PlayingCard['Slots']['Classes'] = {
 		card: '',
 		values: '',
 		facedown: ''

@@ -3,47 +3,20 @@
 	import Dashboard from '../Dashboard/dashboard.svelte';
 	import TimerComponent from '../GameTimer/game-timer.svelte';
 	import CardHand from '../Hand/card-hand.svelte';
+	import {
+		handleFaceUp as faceUpCallback,
+		handleFaceDown as faceDownCallback
+	} from './callbacks/game';
 	export let game: Game;
-	const { playSize } = game;
-	game.handleFaceUp = (detail, type, preventDefault) => {
-		if (type !== 'faceup') return;
-		if (game.hand.countFaceUp() === 2) return preventDefault();
-		if (game.hand.countFaceUp() !== game.cardsPlayed.count) return preventDefault();
-		if (game.cardsPlayed.makePlay({ _id: detail._id, _value: detail._value })) {
-			if (game.cardsPlayed.count === 2) {
-				game
-					.gameResult()
-					.then(({ one, two }) => {
-						game.hand.removeCards(one._id, two._id);
-						game.cardsPlayed.reset();
-					})
-					.catch(() => setTimeout(() => game.cardsPlayed.reset(true), 1000));
-			}
-		} else {
-			if (game.cardsPlayed.count === 2) {
-				game.cardsPlayed.reset();
-				preventDefault();
-				return;
-			}
-		}
-	};
-	game.handleFaceDown = (detail, type) => {
-		if (type !== 'facedown') return;
-		try {
-			game.cardsPlayed.removePlay(detail._id);
-		} catch (error) {
-			console.error(error);
-		}
-		console.table(game.cardsPlayed.current);
-	};
+	game.setHandler('faceup', faceUpCallback);
+	game.setHandler('facedown', faceDownCallback);
 	const {
 		gameWon,
 		timer: { store: timerStore },
 		controls,
-		cardsPlayed: { removePlay },
 		handlers: {
-			game: { handleFaceDown, handleFaceUp, handleMove },
-			timer: { handleEnd, handleStart, handleStop }
+			timer: { handleEnd, handleStart, handleStop },
+			game: { handleFaceDown, handleFaceUp, handleMove }
 		}
 	} = game;
 </script>

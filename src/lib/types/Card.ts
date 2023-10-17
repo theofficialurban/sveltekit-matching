@@ -1,3 +1,4 @@
+import type Game from '$lib/classes/Game';
 import type PlayingCardComponent from '$lib/components/PlayingCard/playing-card.svelte';
 import type CardStore from '$lib/stores/cards';
 import type { ComponentEvents } from 'svelte';
@@ -60,15 +61,21 @@ type Card = {
 	_cover?: string;
 };
 type CardEventHandler = (
-	event: Pick<CardComponentEvents, 'faceup' | 'facedown' | 'move'>
+	event: PlayingCard['Events']['Types']['facedown' | 'faceup' | 'move']
 ) => void | Promise<void>;
 
 type CardEventHandlerCallback = (
-	d: PlayingCard['CardLike'] | CardMove,
+	game: Game,
+	details: PlayingCard['CardLike'] | CardMove,
 	type: string,
 	preventDefault: () => void
 ) => void | Promise<void>;
-
+export type EventHandlerCallback = (
+	game: Game,
+	details: unknown,
+	type: string,
+	preventDefault: () => void
+) => void;
 export default interface PlayingCard {
 	State: Card;
 	CardLike: CardLike;

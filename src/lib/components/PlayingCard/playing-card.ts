@@ -1,5 +1,4 @@
 import type PlayingCard from '$lib/types/Card';
-
 /**
  * @action cardflip - Handles the animation of the card via Svelte Actions
  * @param node The node of the card

@@ -3,7 +3,6 @@ import type GameTimer from '$lib/stores/timer';
 import { Rule, type GameRule } from './Rule';
 import PlayedCards, { type Final } from './Played';
 import type PlayingCard from '$lib/types/Card';
-import FlipHandler from './handlers/FlipHandler';
 
 /**
  * @interface GameSettings - The interface implemented by the Game class.
@@ -88,16 +87,36 @@ export default class Game implements GameSettings {
 			timer: this.timer.handlers
 		};
 	}
-	set handleMove(fn: PlayingCard['Events']['Callback']) {
-		this.gameHandlers.move = FlipHandler(fn);
+	#handlerBuilder(fn: PlayingCard['Events']['Callback']) {
+		const h: PlayingCard['Events']['Handler'] = ({ detail, type, preventDefault }) => {
+			fn(this, detail, type, preventDefault);
+		};
+		return h;
 	}
-	set handleFaceUp(fn: PlayingCard['Events']['Callback']) {
-		this.gameHandlers.faceup = FlipHandler(fn);
+	setHandler(
+		type: keyof GameSettings['gameHandlers'],
+		callback: PlayingCard['Events']['Callback']
+	) {
+		switch (type) {
+			case 'faceup': {
+				this.gameHandlers.faceup = this.#handlerBuilder(callback);
+				break;
+			}
+			case 'facedown': {
+				this.gameHandlers.facedown = this.#handlerBuilder(callback);
+				break;
+			}
+			case 'move': {
+				this.gameHandlers.move = this.#handlerBuilder(callback);
+				break;
+			}
+			default: {
+				this._err('Error Setting Handler');
+				break;
+			}
+		}
+		return;
 	}
-	set handleFaceDown(fn: PlayingCard['Events']['Callback']) {
-		this.gameHandlers.facedown = FlipHandler(fn);
-	}
-
 	public startGame() {
 		if (this.gameRules.length === 0) return this._err('No Game Rules.');
 		return this.timer.start();

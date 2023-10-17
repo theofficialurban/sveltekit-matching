@@ -8,6 +8,7 @@ import type GameTimer from '$lib/components/GameTimer/game-timer.svelte';
 type TimerEventHandler = (e: TimerComponentEvent) => void | Promise<void>;
 
 type TimerEventCallback = (
+	game: Game,
 	details: Timer | null,
 	type: string,
 	preventDefault: () => void

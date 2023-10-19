@@ -1,7 +1,3 @@
 <script lang="ts">
-	import Testing from '$lib/components/Testing/testing.svelte';
-
-	let yes = false;
+	import GameTimerThree from '$lib/components/GameTimer/game-timer-three.svelte';
 </script>
-
-<Testing on:testing={() => console.log('Testing event.')} />

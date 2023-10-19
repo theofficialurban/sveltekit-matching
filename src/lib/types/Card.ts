@@ -1,4 +1,3 @@
-import type Game from '$lib/classes/Game';
 import type PlayingCardComponent from '$lib/components/PlayingCard/playing-card.svelte';
 import type CardStore from '$lib/stores/cards';
 import type { ComponentEvents } from 'svelte';
@@ -27,12 +26,11 @@ type CardStatus = 'FACEDOWN' | 'FACEUP';
  * @type CardTransition
  * The transition using tweens for card flip
  */
-type CardTransition = { rotation: number; fade: number };
+export type CardTransition = { rotation: number; fade: number };
 
-type CardLike = Partial<Card> & { _id: number; _value: number };
+export type CardLike = Partial<Card> & { _id: number; _value: number };
 
-type CardMove = CardLike & { _prevStatus: CardStatus; _currentStatus: CardStatus };
-
+export type CardMove = CardLike & { _prevStatus: CardStatus; _currentStatus: CardStatus };
 /**
  * @typedef CardSlotClasses
  * @property card - The classes applied to the body of the card
@@ -60,22 +58,7 @@ type Card = {
 	_status: PlayingCard['Status'];
 	_cover?: string;
 };
-type CardEventHandler = (
-	event: PlayingCard['Events']['Types']['facedown' | 'faceup' | 'move']
-) => void | Promise<void>;
 
-type CardEventHandlerCallback = (
-	game: Game,
-	details: PlayingCard['CardLike'] | CardMove,
-	type: string,
-	preventDefault: () => void
-) => void | Promise<void>;
-export type EventHandlerCallback = (
-	game: Game,
-	details: unknown,
-	type: string,
-	preventDefault: () => void
-) => void;
 export default interface PlayingCard {
 	State: Card;
 	CardLike: CardLike;
@@ -87,8 +70,6 @@ export default interface PlayingCard {
 	Events: {
 		Types: CardComponentEvents;
 		DispatchTypes: CardEventTypes;
-		Handler: CardEventHandler;
-		Callback: CardEventHandlerCallback;
 	};
 	Status: CardStatus;
 	Transition: CardTransition;

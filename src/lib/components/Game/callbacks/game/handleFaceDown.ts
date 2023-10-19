@@ -1,13 +1,15 @@
-import type PlayingCard from '$lib/types/Card';
+import type { Callback } from '$lib/classes/Builder';
+import { GameStatus } from '$lib/classes/Game';
+import type { CardLike, CardMove } from '$lib/types/Card';
 
-const handleFaceDown: PlayingCard['Events']['Callback'] = (game, detail, type) => {
+const handleFaceDown: Callback<CardLike | CardMove> = (game, detail, type, preventDefault) => {
 	if (type !== 'facedown') return;
+	if (game.gameStatus !== GameStatus.INPROGRESS) return preventDefault();
 	try {
-		game.cardsPlayed.removePlay(detail._id);
+		game.cardsPlayed.remove(detail._id);
 	} catch (error) {
 		console.error(error);
 	}
-	console.table(game.cardsPlayed.current);
 };
 
 export default handleFaceDown;

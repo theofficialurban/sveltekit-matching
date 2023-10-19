@@ -1,56 +1,78 @@
 import type CardStore from '$lib/stores/cards';
-import type GameTimer from '$lib/stores/timer';
 import { Rule, type GameRule } from './Rule';
-import PlayedCards, { type Final } from './Played';
+import PlayedCards, { type CardLikeData } from './Played';
 import type PlayingCard from '$lib/types/Card';
+import type { EasingFunction } from 'svelte/transition';
+import { tweened, type Tweened } from 'svelte/motion';
+import createEventCallback, { type Callback, type Handler } from './Builder';
+import type { CardLike, CardMove } from '$lib/types/Card';
 
-/**
- * @interface GameSettings - The interface implemented by the Game class.
- *  @property playSize - The number of cards able to be face up at one time.
- *  @property controls - Admin controls for testing.
- *  @property cardsPlayed - Pending...
- *  @property gameWon - Game won t/f
- *  @property gameRules - Rules for game win.
- *  @property hand - The card store
- *  @property timer - The timer store
- *  @property gameHandlers - Handlers for the game events.
- */
 export interface GameSettings {
 	playSize: number;
 	controls: boolean;
 	cardsPlayed: PlayedCards;
-	gameWon: boolean;
+	gameStatus: GameStatus;
 	gameRules: Rule[];
 	hand: PlayingCard['Store'];
-	timer: GameTimer;
+	timer: Tweened<number>;
 	gameHandlers: {
-		facedown: PlayingCard['Events']['Handler'];
-		faceup: PlayingCard['Events']['Handler'];
-		move: PlayingCard['Events']['Handler'];
+		facedown: Handler<CardLike | CardMove>;
+		faceup: Handler<CardLike | CardMove>;
+		move: Handler<CardLike | CardMove>;
 	};
 }
 
+type TimerOptions = {
+	duration: number;
+	easing: EasingFunction;
+};
+export enum GameStatus {
+	WIN,
+	LOSS,
+	INPROGRESS,
+	NOTSTARTED,
+	ERROR
+}
+export function resolveStatus(status: GameStatus) {
+	switch (status) {
+		case GameStatus.WIN:
+			return 'Win';
+		case GameStatus.ERROR:
+			return 'Error';
+		case GameStatus.LOSS:
+			return 'Loss';
+		case GameStatus.INPROGRESS:
+			return 'In Progress';
+		case GameStatus.NOTSTARTED:
+			return 'Not Started';
+	}
+}
 export default class Game implements GameSettings {
 	public playSize: GameSettings['playSize'] = 2;
 	public controls: GameSettings['controls'] = false;
+	public timer: Tweened<number>;
 	public cardsPlayed: PlayedCards;
 	public gameRules: GameSettings['gameRules'] = [];
-	public gameWon: GameSettings['gameWon'] = false;
+	public gameStatus: GameStatus = GameStatus.NOTSTARTED;
 	public gameHandlers: GameSettings['gameHandlers'] = {
 		facedown: () => console.log('Face Down'),
 		faceup: () => console.log('Face Up'),
 		move: () => console.log('Move')
 	};
 
-	constructor(public hand: CardStore, public timer: GameTimer) {
-		this.cardsPlayed = new PlayedCards(hand);
+	constructor(public hand: CardStore, timerOptions: TimerOptions) {
+		// Setup the timer
+		this.timer = tweened(timerOptions.duration / 1000, {
+			easing: timerOptions.easing,
+			duration: timerOptions.duration
+		});
+		this.cardsPlayed = new PlayedCards(this);
 		const myRule: GameRule = (game) => {
 			return new Promise<boolean>((resolve, reject) => {
 				const {
-					cardsPlayed: { final }
+					cardsPlayed: { one, two }
 				} = game;
-				if (final) {
-					const { one, two } = final;
+				if (one && two) {
 					return one._value === two._value ? resolve(true) : reject();
 				}
 			});
@@ -62,16 +84,15 @@ export default class Game implements GameSettings {
 	private _err(message: string) {
 		throw new Error(message);
 	}
-	public gameResult(): Promise<Final> {
-		return new Promise<Final>((resolve, reject) => {
+	public gameResult(): Promise<{ one: CardLikeData; two: CardLikeData }> {
+		return new Promise<{ one: CardLikeData; two: CardLikeData }>((resolve, reject) => {
 			const rules: Rule[] = this.gameRules;
 			const promises: Promise<void>[] = [];
 			rules.forEach((rule) => promises.push(rule.attempt(this)));
 			Promise.all(promises).then(
 				() => {
-					if (this.cardsPlayed.final) {
-						resolve(this.cardsPlayed.final);
-					}
+					const { one, two } = this.cardsPlayed;
+					resolve({ one, two });
 				},
 				() => reject('Rule(s) Failed')
 			);
@@ -83,31 +104,21 @@ export default class Game implements GameSettings {
 				handleMove: this.gameHandlers.move,
 				handleFaceDown: this.gameHandlers.facedown,
 				handleFaceUp: this.gameHandlers.faceup
-			},
-			timer: this.timer.handlers
+			}
 		};
 	}
-	#handlerBuilder(fn: PlayingCard['Events']['Callback']) {
-		const h: PlayingCard['Events']['Handler'] = ({ detail, type, preventDefault }) => {
-			fn(this, detail, type, preventDefault);
-		};
-		return h;
-	}
-	setHandler(
-		type: keyof GameSettings['gameHandlers'],
-		callback: PlayingCard['Events']['Callback']
-	) {
+	setHandler(type: keyof GameSettings['gameHandlers'], callback: Callback<CardLike | CardMove>) {
 		switch (type) {
 			case 'faceup': {
-				this.gameHandlers.faceup = this.#handlerBuilder(callback);
+				this.gameHandlers.faceup = createEventCallback(this, callback);
 				break;
 			}
 			case 'facedown': {
-				this.gameHandlers.facedown = this.#handlerBuilder(callback);
+				this.gameHandlers.facedown = createEventCallback(this, callback);
 				break;
 			}
 			case 'move': {
-				this.gameHandlers.move = this.#handlerBuilder(callback);
+				this.gameHandlers.move = createEventCallback(this, callback);
 				break;
 			}
 			default: {
@@ -119,6 +130,6 @@ export default class Game implements GameSettings {
 	}
 	public startGame() {
 		if (this.gameRules.length === 0) return this._err('No Game Rules.');
-		return this.timer.start();
+		return this.timer.set(0);
 	}
 }

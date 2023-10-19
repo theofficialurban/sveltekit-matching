@@ -1,22 +1,29 @@
-import type PlayingCard from '$lib/types/Card';
+import type { Callback } from '$lib/classes/Builder';
+import { GameStatus } from '$lib/classes/Game';
+import type { CardLike, CardMove } from '$lib/types/Card';
 
-const handleFaceUp: PlayingCard['Events']['Callback'] = (game, detail, type, preventDefault) => {
+const handleFaceUp: Callback<CardLike | CardMove> = (game, detail, type, preventDefault) => {
 	if (type !== 'faceup') return;
+	if (game.gameStatus !== GameStatus.INPROGRESS) return preventDefault();
 	if (game.hand.countFaceUp() === 2) return preventDefault();
 	if (game.hand.countFaceUp() !== game.cardsPlayed.count) return preventDefault();
-	if (game.cardsPlayed.makePlay({ _id: detail._id, _value: detail._value })) {
+	if (game.cardsPlayed.attemptPlay({ _id: detail._id, _value: detail._value })) {
 		if (game.cardsPlayed.count === 2) {
 			game
 				.gameResult()
 				.then(({ one, two }) => {
-					game.hand.removeCards(one._id, two._id);
-					game.cardsPlayed.reset();
+					if (one && two) {
+						setTimeout(() => {
+							game.hand.removeCards(one._id, two._id);
+							game.cardsPlayed.reset(null);
+						}, 2000);
+					}
 				})
-				.catch(() => setTimeout(() => game.cardsPlayed.reset(true), 1000));
+				.catch(() => setTimeout(() => game.cardsPlayed.reset(null), 1500));
 		}
 	} else {
 		if (game.cardsPlayed.count === 2) {
-			game.cardsPlayed.reset();
+			setTimeout(() => game.cardsPlayed.reset(null), 1500);
 			preventDefault();
 			return;
 		}

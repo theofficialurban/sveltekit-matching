@@ -1,104 +1,85 @@
-import type { CardMove, PlayingCard } from '$lib/components/PlayingCard/card';
-import type CardStore from '$lib/stores/cards';
-export type Final = {
-	one: CardLikeData;
-	two: CardLikeData;
-};
-export type CardLikeData = PlayingCard | CardMove;
-export type ContainedCard = CardLikeData | -1;
-export type CardContainer = [ContainedCard, ContainedCard];
-export default class PlayedCards {
-	public _cardsPlayed: CardContainer = [-1, -1];
+import type { CardLike, CardMove } from '$lib/types/Card';
+import type Game from './Game';
 
-	constructor(private _hand: CardStore) {
+export type CardLikeData = CardLike | CardMove | null;
+export type CardContainer = [CardLikeData, CardLikeData];
+
+/**
+ * @class PlayedCards
+ * Holds information about the currently played cards.
+ */
+export default class PlayedCards {
+	private _cardsPlayed: CardContainer = [null, null];
+
+	constructor(private _game: Game) {
 		return this;
 	}
-	public removePlay(cardId: number): Promise<boolean> {
-		return new Promise((resolve, reject) => {
-			this._cardsPlayed.forEach((card, index) => {
-				if (card === -1) return;
-				if (card._id === cardId) {
-					this._cardsPlayed[index] = -1;
-					resolve(true);
-				}
-			});
-			reject('Card Not Found');
-		});
+	/**
+	 * @private _findSlot()
+	 * Finds the next open slot or returns null if there is none.
+	 * @returns 0 | 1 | null
+	 */
+	private _findSlot(): 0 | 1 | null {
+		if (!this._cardsPlayed[0]) return 0;
+		if (!this._cardsPlayed[1]) return 1;
+		return null;
 	}
-	public makePlay(card: PlayingCard): boolean {
-		if (!this.getCard('one')) {
-			this.one = card;
-			console.table([this.getCard('one'), this.getCard('two')]);
-			return true;
-		} else if (!this.getCard('two')) {
-			this.two = card;
-			console.table([this.getCard('one'), this.getCard('two')]);
+	get one() {
+		return this._cardsPlayed[0];
+	}
+	get two() {
+		return this._cardsPlayed[1];
+	}
+	get count() {
+		let ct = 0;
+		if (this._cardsPlayed[0]) ct += 1;
+		if (this._cardsPlayed[1]) ct += 1;
+		return ct;
+	}
+	/**
+	 * @public remove()
+	 * @param cardId - ID of the card to remove from currently played.
+	 * @returns boolean
+	 */
+	remove(cardId: number) {
+		if (this._cardsPlayed[0]?._id === cardId) {
+			this._cardsPlayed[0] = null;
 			return true;
 		}
-
+		if (this._cardsPlayed[1]?._id === cardId) {
+			this._cardsPlayed[1] = null;
+			return true;
+		}
 		return false;
 	}
 	/**
-	 * @public getCard(one|two) => ContainedCard | null
-	 * @param card - one or two
-	 * @returns
+	 * @public reset(slot) - Will reset and flip back over the slot specified, or both
+	 * if null is passed.
+	 * @param slot 1|0|null
+	 * @returns CardsContainer
 	 */
-	public getCard(card: 'one' | 'two', asString: boolean = false): ContainedCard | string | null {
-		switch (card) {
-			case 'one':
-				if (this._cardsPlayed[0] === -1) return null;
-				if (asString === true) return JSON.stringify(this._cardsPlayed[0]);
-				return this._cardsPlayed[0];
-			case 'two':
-				if (this._cardsPlayed[1] === -1) return null;
-				if (asString === true) return JSON.stringify(this._cardsPlayed[1]);
-				return this._cardsPlayed[1];
-
-			default:
-				return null;
+	reset(slot: 1 | 0 | null): CardContainer {
+		if (slot === 0 && this._cardsPlayed[0])
+			this._game.hand.setStatus('FACEDOWN', this._cardsPlayed[0]._id);
+		if (slot === 1 && this._cardsPlayed[1])
+			this._game.hand.setStatus('FACEDOWN', this._cardsPlayed[1]._id);
+		if (slot === null && this._cardsPlayed[1] && this._cardsPlayed[0])
+			this._game.hand.setStatus('FACEDOWN', this._cardsPlayed[0]._id, this._cardsPlayed[1]._id);
+		slot !== null ? (this._cardsPlayed[slot] = null) : (this._cardsPlayed = [null, null]);
+		return this._cardsPlayed;
+	}
+	/**
+	 * @public attemptPlay()
+	 * @param card - The card attempting to be played
+	 * @returns boolean
+	 */
+	attemptPlay(card: CardLikeData): boolean {
+		const slot = this._findSlot();
+		if (slot === null) return false;
+		if (slot !== null) {
+			this._cardsPlayed[slot] = card;
+			return true;
 		}
-	}
-	/**
-	 * @property count - The number of cards currently played.
-	 */
-	get count() {
-		let count = 0;
-		if (this._cardsPlayed[0] !== -1) count++;
-		if (this._cardsPlayed[1] !== -1) count++;
-		return count;
-	}
-	get final(): Final | null {
-		const one = this._cardsPlayed[0];
-		const two = this._cardsPlayed[1];
-		if (one === -1 || two === -1) return null;
-		return {
-			one,
-			two
-		};
-	}
-	/**
-	 * @property current - The current cards.
-	 */
-	get current() {
-		return {
-			one: this._cardsPlayed[0],
-			two: this._cardsPlayed[1]
-		};
-	}
-	/**
-	 * @public reset() - Resets the current cards
-	 * @returns void
-	 */
-	public reset(resetCards: boolean = false) {
-		const { one, two } = this.current;
-		if (one === -1 || two === -1) return;
-		if (resetCards) this._hand.setStatus('FACEDOWN', one._id, two._id);
-		this._cardsPlayed = [-1, -1];
-	}
-	set one(val: ContainedCard) {
-		this._cardsPlayed[0] = val;
-	}
-	set two(val: ContainedCard) {
-		this._cardsPlayed[1] = val;
+		return false;
 	}
 }

@@ -113,25 +113,19 @@ export default class CardStore {
 		return true;
 	}
 	/**
-	 * @public countFaceUp()
+	 * @public countCards(status)
+	 * @param status - The status to count, returns # of face up or face down
 	 * @returns the number of cards that are currently face up
 	 */
-	public countFaceUp(): number {
-		let faceUp: number = 0;
+	public countCards(status: PlayingCard['Status']): number {
+		let count: number = 0;
 		const deck: Deck = get(this.store);
 		deck.forEach((card) => {
-			if (card._status === 'FACEUP') faceUp++;
+			if (card._status === status) count++;
 		});
-		return faceUp;
+		return count;
 	}
-	/**
-	 * @private _shuffle() - Internal helper which shuffles all cards.
-	 */
-	private _shuffle() {
-		this.store.update((d) => {
-			return shuffle(d);
-		});
-	}
+
 	/**
 	 * @public shuffle(repeat = 1) Shuffles all cards. Public Method
 	 * @param repeat Number of times to shuffle
@@ -146,7 +140,9 @@ export default class CardStore {
 					setTimeout(
 						count <= repeat
 							? () => {
-									this._shuffle();
+									this.store.update((d) => {
+										return shuffle(d);
+									});
 							  }
 							: () => resolve(),
 						500 * count
@@ -154,6 +150,18 @@ export default class CardStore {
 				}
 			});
 		});
+	}
+
+	/**
+	 * @private _valueExists(value) - Check to see if a card value is in use
+	 * @param val The card value to check for
+	 * @returns boolean
+	 */
+	private _valueExists(val: number): boolean {
+		const result = find(this.values, (v) => v === val);
+		if (result !== undefined) return true;
+		if (result === undefined) return false;
+		return false;
 	}
 	/**
 	 * @private createDeck(count, pairs) - Creates a new deck
@@ -166,17 +174,6 @@ export default class CardStore {
 			this._newCard(pairs);
 		}
 		return;
-	}
-	/**
-	 * @private _valueExists(value) - Check to see if a card value is in use
-	 * @param val The card value to check for
-	 * @returns boolean
-	 */
-	private _valueExists(val: number): boolean {
-		const result = find(this.values, (v) => v === val);
-		if (result !== undefined) return true;
-		if (result === undefined) return false;
-		return false;
 	}
 	/**
 	 * @private _newCard() - Creates a single (or pair) of cards.
@@ -218,6 +215,11 @@ export default class CardStore {
 		this.store.update((s) => [...s, ...newCards]);
 		return newCards;
 	}
+	/**
+	 * @public removeCards(...card Ids)
+	 * @param args A list of card ids to remove.
+	 * @returns Promise<void>
+	 */
 	public removeCards(...args: number[]): Promise<void> {
 		return new Promise<void>((resolve) => {
 			this.store.update((s) => {
@@ -229,15 +231,29 @@ export default class CardStore {
 			resolve();
 		});
 	}
+	/**
+	 * @public setStatus(status, cardIds?)
+	 * @param status The status to set the card(s) to
+	 * @param args A list of card ids can be left blank to set status for all cards.
+	 * @returns
+	 */
 	public setStatus(status: PlayingCard['Status'], ...args: number[]) {
-		args.forEach((i) => {
+		if (args.length === 0) {
 			this.store.update((s) => {
-				s.forEach((c) => {
-					if (c._id === i) c._status = status;
-					return;
-				});
+				s.forEach((card) => (card._status = status));
 				return s;
 			});
-		});
+		} else {
+			args.forEach((i) => {
+				this.store.update((s) => {
+					s.forEach((c) => {
+						if (c._id === i) c._status = status;
+						return;
+					});
+					return s;
+				});
+			});
+		}
+		return;
 	}
 }

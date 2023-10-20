@@ -6,12 +6,14 @@ import type { EasingFunction } from 'svelte/transition';
 import { tweened, type Tweened } from 'svelte/motion';
 import createEventCallback, { type Callback, type Handler } from './Builder';
 import type { CardLike, CardMove } from '$lib/types/Card';
+import { get } from 'svelte/store';
 
 export interface GameSettings {
 	playSize: number;
 	controls: boolean;
 	cardsPlayed: PlayedCards;
 	gameStatus: GameStatus;
+	score: number;
 	gameRules: Rule[];
 	hand: PlayingCard['Store'];
 	timer: Tweened<number>;
@@ -28,29 +30,34 @@ type TimerOptions = {
 };
 export enum GameStatus {
 	WIN,
+	ERROR,
 	LOSS,
 	INPROGRESS,
 	NOTSTARTED,
-	ERROR
+	ENDED
 }
-export function resolveStatus(status: GameStatus) {
+function resolveStatus(status: GameStatus) {
 	switch (status) {
-		case GameStatus.WIN:
+		case 0:
 			return 'Win';
-		case GameStatus.ERROR:
+		case 1:
 			return 'Error';
-		case GameStatus.LOSS:
+		case 2:
 			return 'Loss';
-		case GameStatus.INPROGRESS:
+		case 3:
 			return 'In Progress';
-		case GameStatus.NOTSTARTED:
+		case 4:
 			return 'Not Started';
+		case 5:
+			return 'Ended';
 	}
 }
 export default class Game implements GameSettings {
 	public playSize: GameSettings['playSize'] = 2;
 	public controls: GameSettings['controls'] = false;
 	public timer: Tweened<number>;
+	private _duration: number = 30;
+	public score: number = 0;
 	public cardsPlayed: PlayedCards;
 	public gameRules: GameSettings['gameRules'] = [];
 	public gameStatus: GameStatus = GameStatus.NOTSTARTED;
@@ -62,6 +69,7 @@ export default class Game implements GameSettings {
 
 	constructor(public hand: CardStore, timerOptions: TimerOptions) {
 		// Setup the timer
+		this._duration = timerOptions.duration;
 		this.timer = tweened(timerOptions.duration / 1000, {
 			easing: timerOptions.easing,
 			duration: timerOptions.duration
@@ -130,6 +138,26 @@ export default class Game implements GameSettings {
 	}
 	public startGame() {
 		if (this.gameRules.length === 0) return this._err('No Game Rules.');
-		return this.timer.set(0);
+		this.gameStatus = GameStatus.INPROGRESS;
+		this.timer.set(0).then(() => {
+			this.gameStatus = GameStatus.ENDED;
+		});
+	}
+	private reset() {
+		this.timer.set(this._duration * 1000, { duration: 0 }).then(() => {
+			this.gameStatus = GameStatus.NOTSTARTED;
+		});
+		this.cardsPlayed.reset(null);
+		this.score = 0;
+		this.hand.newHand();
+	}
+	public stopGame() {
+		if (this.gameStatus !== GameStatus.INPROGRESS) return;
+		const { score, timer } = this;
+		const t = get(timer);
+		timer.set(t, { duration: 0 });
+		console.log('----RESULTS----');
+		console.table([t, score]);
+		this.reset();
 	}
 }

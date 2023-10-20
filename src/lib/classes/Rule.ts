@@ -1,12 +1,12 @@
+import type GameVitals from '$lib/stores/game';
 import { uniqueId } from 'lodash-es';
-import type Game from './Game';
 
 /**
  * @type GameRule
  * @description A rule for game win. All rules must evaluate to true for a win.
  */
 export type GameRule =
-	| ((game: Game) => Promise<boolean>)
+	| ((game: GameVitals) => Promise<boolean>)
 	| (() => Promise<boolean>)
 	| (() => Promise<void>);
 
@@ -25,7 +25,7 @@ export class Rule {
 	 * @param game the game to run the rule against.
 	 * @returns Promise<boolean>
 	 */
-	public attempt(game: Game): Promise<void> {
+	public attempt(game: GameVitals): Promise<void> {
 		return new Promise((resolve, reject) => {
 			this._rule(game)
 				.then(() => resolve())

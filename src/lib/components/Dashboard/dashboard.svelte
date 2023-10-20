@@ -2,23 +2,48 @@
 	import Button from '../ui/button/button.svelte';
 	import * as Accordion from '../ui/accordion/index';
 	import * as Dialog from '$components/ui/dialog';
-	import type Game from '$lib/classes/Game';
-	import type { DurationInputArg1, DurationInputArg2 } from 'moment';
-	export let game: Game;
-	const { hand } = game;
+	import type GameManager from '$lib/stores/manager';
+	import { onMount } from 'svelte';
+	export let game: GameManager;
+	const {
+		hand,
+		timer,
+		vitals: { admin }
+	} = game;
+	onMount(() => {
+		game.vitals.addGameRule('Game Rule Test', (vitals) => {
+			console.log(vitals);
+			return Promise.resolve(true);
+		});
+		game.vitals.addCallback('stop', (vitals, params) => {
+			console.log(params);
+			return true;
+		});
+	});
+
 	const { store: cardStore, pairs } = hand;
 </script>
 
 <Dialog.Root>
 	<Dialog.Trigger>
-		<Button variant="ghost">🃏 Cards Played</Button>
+		<Button variant="destructive">⌚ Time Controls</Button>
 	</Dialog.Trigger>
 	<Dialog.Content class="grid grid-rows-2 gap-4 w-max">
-		<div>
-			<Button on:click={() => console.table([game.cardsPlayed.one, game.cardsPlayed.two])}
-				>Print Tables</Button
-			>
+		<div class="container">
+			<Button on:click={() => timer.start()} variant="secondary">Start</Button>
+			<Button on:click={() => timer.stop()} variant="secondary">Stop</Button>
+			<Button on:click={() => timer.reset()} variant="secondary">Reset</Button>
 		</div>
+
+		<!-- <Accordion.Root>
+			<Accordion.Item value="1">
+				<Accordion.Trigger>All Cards</Accordion.Trigger>
+				<Accordion.Content>
+					
+				</Accordion.Content>
+			</Accordion.Item>
+			
+		</Accordion.Root> -->
 	</Dialog.Content>
 </Dialog.Root>
 
@@ -29,13 +54,15 @@
 	<Dialog.Content class="grid grid-rows-2 gap-4 w-max">
 		<div class="container">
 			<Button on:click={() => hand.shuffle(3)} variant="secondary">Shuffle</Button>
-			<Button on:click={() => hand.coverAll()} variant="secondary">Cover All</Button>
-			<Button on:click={() => hand.revealAll()} variant="secondary">Reveal All</Button>
+			<Button on:click={() => hand.setStatus('FACEDOWN')} variant="secondary">Cover All</Button>
+			<Button on:click={() => hand.setStatus('FACEUP')} variant="secondary">Reveal All</Button>
 			<Button on:click={() => hand.newHand()} variant="secondary">New Hand</Button>
-			<Button on:click={() => alert(hand.countFaceUp())}>Count Face Up</Button>
+
+			<Button on:click={() => alert(hand.countCards('FACEUP'))}>Count Face Up</Button>
+			<Button on:click={() => alert(hand.countCards('FACEDOWN'))}>Count Face Up</Button>
 		</div>
 
-		<Accordion.Root>
+		<Accordion.Root class="overflow-scroll">
 			<Accordion.Item value="1">
 				<Accordion.Trigger>All Cards</Accordion.Trigger>
 				<Accordion.Content>
@@ -56,6 +83,33 @@
 					<ol>
 						{#each pairs as [val, [c1, c2]]}
 							<li><span class="text-lg text-red-600 font-bold">{val}</span> - {c1} {c2}</li>
+						{/each}
+					</ol>
+				</Accordion.Content>
+			</Accordion.Item>
+			<Accordion.Item value="3">
+				<Accordion.Trigger>Rules and Callbacks</Accordion.Trigger>
+				<Accordion.Content>
+					Callbacks
+					<ol>
+						{#each admin.callbacks as callback}
+							<li>
+								{callback[0]} -
+								<button on:click={() => game.vitals.callback(callback[0], { a: 1, b: 2 })}
+									>Click to Test</button
+								>
+							</li>
+						{/each}
+					</ol>
+					<br />
+
+					Rules
+					<ol>
+						{#each admin.rules as rule}
+							<li>
+								Rule ID: {rule[1].info.id} | {rule[1].ruleName}
+								<button on:click={() => rule[1].attempt(game.vitals)}>Click to Test</button>
+							</li>
 						{/each}
 					</ol>
 				</Accordion.Content>

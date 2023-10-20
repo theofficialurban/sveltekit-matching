@@ -1,8 +1,8 @@
 <script lang="ts">
 	import type Game from '$lib/classes/Game';
-	import { resolveStatus } from '$lib/classes/Game';
 	import Dashboard from '../Dashboard/dashboard.svelte';
 	import CardHand from '../Hand/card-hand.svelte';
+	import Timer from '../Timer/timer.svelte';
 	import {
 		handleFaceUp as faceUpCallback,
 		handleFaceDown as faceDownCallback
@@ -13,6 +13,7 @@
 	const {
 		gameStatus,
 		controls,
+		timer,
 		handlers: {
 			game: { handleFaceDown, handleFaceUp, handleMove }
 		}
@@ -20,7 +21,8 @@
 </script>
 
 <div class="text-3xl text-center">
-	Game Won Status: <span class=" text-teal-500">{resolveStatus(gameStatus)}</span>
+	<Timer {game} />
+	|{$timer ?? ''}| Game Won Status: <span class=" text-teal-500">{resolveStatus(gameStatus)}</span>
 </div>
 {#if controls}
 	<Dashboard {game} />

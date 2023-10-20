@@ -15,15 +15,16 @@ const handleFaceUp: Callback<CardLike | CardMove> = (game, detail, type, prevent
 					if (one && two) {
 						setTimeout(() => {
 							game.hand.removeCards(one._id, two._id);
+							game.score += 2;
 							game.cardsPlayed.reset(null);
-						}, 2000);
+						}, 1000);
 					}
 				})
 				.catch(() => setTimeout(() => game.cardsPlayed.reset(null), 1500));
 		}
 	} else {
 		if (game.cardsPlayed.count === 2) {
-			setTimeout(() => game.cardsPlayed.reset(null), 1500);
+			setTimeout(() => game.cardsPlayed.reset(null), 500);
 			preventDefault();
 			return;
 		}

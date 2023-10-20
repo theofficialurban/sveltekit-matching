@@ -5,10 +5,13 @@
 	import { flip } from 'svelte/animate';
 	import { quintOut } from 'svelte/easing';
 	import { crossfade } from 'svelte/transition';
-	import type Game from '$lib/classes/Game';
+	import type GameManager from '$lib/stores/manager';
 
-	export let game: Game;
-	const { hand, playSize } = game;
+	export let game: GameManager;
+	const {
+		hand,
+		settings: { playSize }
+	} = game;
 	const [send, recieve] = crossfade({
 		duration: 1000,
 		fallback(node, param) {

@@ -1,14 +1,28 @@
 <script lang="ts">
-	import GameComponent from '$components/Game/game.svelte';
-	import Game from '$lib/classes/Game';
-	import CardStore from '$lib/stores/cards';
 	import Face from '$lib/assets/card-face.png';
 	import Face2 from '$lib/assets/card2.png';
-	import { linear } from 'svelte/easing';
-
-	let cards: CardStore = new CardStore(5, true, [Face, Face2]);
-	const game: Game = new Game(cards, { duration: 10000, easing: linear });
-	game.controls = true;
+	import Dashboard from '$lib/components/Dashboard/dashboard.svelte';
+	import CardHand from '$lib/components/Hand/card-hand.svelte';
+	import PlayingCard from '$lib/components/PlayingCard/playing-card.svelte';
+	import Timer from '$lib/components/Timer/timer.svelte';
+	import GameManager from '$lib/stores/manager';
+	const game = GameManager.init({
+		playSize: 2,
+		controls: true,
+		timer: {
+			duration: 10
+		},
+		cards: {
+			count: 3,
+			pairs: false
+		}
+	});
+	const { hand } = game;
 </script>
 
-<GameComponent {game} />
+<Dashboard {game} />
+
+<Timer {game} />
+f
+
+<CardHand {game} />

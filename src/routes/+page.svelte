@@ -13,8 +13,9 @@
 			duration: 10
 		},
 		cards: {
-			count: 3,
-			pairs: false
+			count: 2,
+			pairs: true,
+			faceImgs: [Face, Face2]
 		}
 	});
 	const { hand } = game;
@@ -23,6 +24,5 @@
 <Dashboard {game} />
 
 <Timer {game} />
-f
 
 <CardHand {game} />

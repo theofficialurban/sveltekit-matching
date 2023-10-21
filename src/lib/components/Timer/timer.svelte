@@ -10,7 +10,7 @@
 		timer,
 		vitals: { store: vitalsStore }
 	} = game;
-	const timeStore = timer.get();
+	const { store: timeStore } = timer;
 
 	const { INPROGRESS, WIN, LOSS, ERROR, ENDED } = GameStatus;
 </script>

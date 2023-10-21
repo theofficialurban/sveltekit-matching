@@ -11,9 +11,12 @@
 		vitals: { admin }
 	} = game;
 	onMount(() => {
-		game.vitals.addGameRule('Game Rule Test', (vitals) => {
-			console.log(vitals);
-			return Promise.resolve(true);
+		game.vitals.addGameRule('Equal Values Rule', (vitals) => {
+			const { one, two } = vitals.current;
+			if (one && two) {
+				if (one._value === two._value) return Promise.resolve(true);
+			}
+			return Promise.reject();
 		});
 		game.vitals.addCallback('stop', (vitals, params) => {
 			console.log(params);
@@ -23,6 +26,19 @@
 
 	const { store: cardStore, pairs } = hand;
 </script>
+
+<Dialog.Root>
+	<Dialog.Trigger>
+		<Button variant="default">Currently Played</Button>
+	</Dialog.Trigger>
+	<Dialog.Content class="grid grid-rows-2 gap-4 w-max">
+		<div class="container">
+			{game.vitals.current.one?._id ?? null} | {game.vitals.current.one?._value ?? null}<br />
+			{game.vitals.current.two?._id ?? null} | {game.vitals.current.two?._value ?? null}<br />
+			{game.vitals.current.count}
+		</div>
+	</Dialog.Content>
+</Dialog.Root>
 
 <Dialog.Root>
 	<Dialog.Trigger>

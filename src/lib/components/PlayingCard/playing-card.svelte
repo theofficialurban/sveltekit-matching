@@ -21,11 +21,9 @@
 	 * @param _cover - The card cover or design (back)
 	 * @param _image - The card image (face)
 	 */
-	// export let _id: number;
-	// export let _status: Status = 'FACEDOWN';
-	// export let _value: number;
+
 	export let _cover: string = `${base}/playing-card-235x331.png`;
-	// export let _image: string = NotPictured;
+
 	export let state: PlayingCard['State'];
 	/**
 	 * @param CardSlotClasses

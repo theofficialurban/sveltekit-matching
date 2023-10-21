@@ -3,6 +3,7 @@ import { writable, get, type Writable } from 'svelte/store';
 import Face from '$lib/assets/card-face.png';
 import { uniqueId, random, find, shuffle, sample, remove } from 'lodash-es';
 import NotPictured from '$lib/assets/not-pictured.png';
+import type GameManager from './manager';
 type Card = PlayingCard['State'];
 type Deck = PlayingCard['Deck'];
 /**
@@ -25,6 +26,7 @@ export default class CardStore {
 	 * @returns this
 	 */
 	constructor(
+		private _manager: GameManager,
 		public count: number = 5,
 		public hasPairs: boolean = false,
 		private cardFaceImgs: string[] = [Face]

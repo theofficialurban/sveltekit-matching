@@ -49,6 +49,121 @@ export default class GameVitals {
 
 		return this;
 	}
+	public attemptPlay(card: CardLikeData) {
+		if (this.current.count >= this._manager.settings.playSize) return false;
+		if (!this.current.one) {
+			if (this._setCurrent(1, card)) return true;
+		}
+		if (!this.current.two) {
+			if (this._setCurrent(2, card)) return true;
+		}
+		return false;
+	}
+	private _countCurrentlyPlayed() {
+		const store = get(this._store);
+		let faceUpCards = 0;
+		if (store._faceUp.get(1) !== null) faceUpCards++;
+		if (store._faceUp.get(2) !== null) faceUpCards++;
+		return faceUpCards;
+	}
+	public resetPlay(card: CardLikeData): boolean {
+		if (!card) return false;
+		if (!this.current.one && !this.current.two) return false;
+		if (this.current.one && this.current.one._id === card._id) {
+			this._resetSlot(1);
+			return true;
+		} else if (this.current.two && this.current.two._id === card._id) {
+			this._resetSlot(2);
+			return true;
+		}
+		return false;
+	}
+	private _resetSlot(slot: 1 | 2 | 'both'): void {
+		switch (slot) {
+			case 1: {
+				if (this.current.one !== null) {
+					this._manager.hand.setStatus('FACEDOWN', this.current.one!._id);
+				}
+				this._setCurrent(1, null);
+				break;
+			}
+			case 2: {
+				if (this.current.two !== null) {
+					this._manager.hand.setStatus('FACEDOWN', this.current.two!._id);
+				}
+				this._setCurrent(2, null);
+				break;
+			}
+			case 'both': {
+				if (this.current.two && this.current.one) {
+					this._manager.hand.setStatus('FACEDOWN');
+				}
+				this._setCurrent(2, null) && this._setCurrent(1, null);
+				break;
+			}
+			default: {
+				break;
+			}
+		}
+	}
+	public scoreSuccess() {
+		return new Promise<void>((resolve, reject) => {
+			const { one, two } = this.current;
+			if (one && two) {
+				this.setScore(2);
+				const clear = () =>
+					this._manager.hand
+						.removeCards(one._id, two._id)
+						.then(() => {
+							console.log(`Current Score ${this.current.score}`);
+							this.clearPlay();
+							resolve();
+						})
+						.catch(() => {
+							reject('Could not remove and give score');
+							this._err('Could not remove and give score');
+						});
+				setTimeout(clear, 1000);
+			} else {
+				reject('Either card one or card two is missing.');
+			}
+		});
+	}
+	public clearPlay(): boolean {
+		this._resetSlot('both');
+		return true;
+	}
+	private _setCurrent(slot: 1 | 2, card: CardLikeData): boolean {
+		switch (slot) {
+			case 1: {
+				this._store.update((s) => {
+					const current = s._faceUp;
+					current.set(1, card);
+					return s;
+				});
+				return true;
+			}
+			case 2: {
+				this._store.update((s) => {
+					const current = s._faceUp;
+					current.set(2, card);
+					return s;
+				});
+				return true;
+			}
+			default:
+				return false;
+		}
+	}
+	get current() {
+		const store = get(this._store);
+		return {
+			one: store._faceUp.get(1) ?? null,
+			two: store._faceUp.get(2) ?? null,
+			count: this._countCurrentlyPlayed(),
+			score: store._score
+		};
+	}
 	public gameResults(): Promise<void> {
 		return new Promise<void>((resolve, reject) => {
 			if (this._rules.size === 0) return reject('No Game Rules');

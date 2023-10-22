@@ -20,6 +20,7 @@ export default class Timer {
 	start() {
 		this._manager.vitals.status = GameStatus.INPROGRESS;
 		this._tween.set(0).then(() => {
+			this._manager.vitals.status = GameStatus.ENDED;
 			this._manager.vitals.callback('gameover');
 		});
 	}
@@ -40,7 +41,7 @@ export default class Timer {
 	}
 	hasTime() {
 		const time = get(this._tween);
-		return time !== 0;
+		return time > 0;
 	}
 	get store() {
 		return { ...this._tween };

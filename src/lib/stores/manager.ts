@@ -2,7 +2,6 @@ import type { EasingFunction } from 'svelte/transition';
 import CardStore from './cards';
 import GameVitals from './game';
 import Timer from './timer';
-import type PlayingCard from '$lib/types/Card';
 type Settings = {
 	playSize: number;
 	controls: boolean;
@@ -18,11 +17,6 @@ type Settings = {
 };
 export default class GameManager {
 	public hand: CardStore;
-
-	private _currentlyPlayed: Map<1 | 2, PlayingCard['CardLike'] | null> = new Map<
-		1 | 2,
-		PlayingCard['CardLike'] | null
-	>();
 	public vitals: GameVitals;
 	public timer: Timer;
 	static instance: GameManager | null = null;
@@ -39,10 +33,16 @@ export default class GameManager {
 		// Create the game timer
 		this.timer = new Timer(this, this.settings.timer.duration, this.settings.timer.easing);
 		// Set currently played to null.
-		this._currentlyPlayed.set(1, null) && this._currentlyPlayed.set(2, null);
 		return this;
 	}
-
+	resetAll(): Promise<void> {
+		return new Promise<void>((resolve, reject) => {
+			this.hand.newHand();
+			this.timer.reset();
+			this.vitals.reset();
+			resolve();
+		});
+	}
 	static init(settings: Settings) {
 		if (this.instance) return this.instance;
 		this.instance = new GameManager(settings);

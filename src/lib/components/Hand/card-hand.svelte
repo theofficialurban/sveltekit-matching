@@ -4,7 +4,7 @@
 	import Cover from '$lib/assets/card-cover.png';
 	import { flip } from 'svelte/animate';
 	import { quintOut } from 'svelte/easing';
-	import { crossfade } from 'svelte/transition';
+	import { crossfade, fade } from 'svelte/transition';
 	import type GameManager from '$lib/stores/manager';
 	import type { ComponentEvents } from 'svelte';
 
@@ -15,30 +15,36 @@
 		settings: { playSize }
 	} = game;
 	const { current, store: vitalsStore } = vitals;
-	$: count = current.count;
+	let count = $vitalsStore._faceUpCt;
 	const handleFaceUp = ({ preventDefault, detail }: ComponentEvents<PlayingCard>['faceup']) => {
+		if ($timerStore <= 0) return preventDefault();
 		if (!vitals.attemptPlay(detail)) return preventDefault();
-		if (current.count === 2) {
+		count++;
+		if (count === 2) {
 			console.log('Hello');
 			vitals
 				.gameResults()
 				.then(() => {
 					console.log('Remove and score');
+					count -= 2;
 					vitals.scoreSuccess().catch((e) => {
 						console.error(e);
 					});
 				})
 				.catch(() => {
 					console.log('Reset Play');
+					count -= 2;
 					setTimeout(() => vitals.clearPlay(), 1000);
 				});
 		}
 	};
 	const handleFaceDown = ({ preventDefault, detail }: ComponentEvents<PlayingCard>['facedown']) => {
+		if ($timerStore <= 0) return preventDefault();
 		if (!vitals.resetPlay(detail)) {
 			console.error('Cannot Remove Card from Played');
 			return preventDefault();
 		}
+		count--;
 	};
 	const [send, recieve] = crossfade({
 		duration: 1000,
@@ -62,8 +68,9 @@
 
 {$vitalsStore._score}
 {$timerStore}
+{count}
 {#if $store.length > 0 && $timerStore > 0}
-	<div class="columns-5 mx-auto">
+	<div class="columns-5 mx-auto" transition:fade={{ duration: 1000 }}>
 		{#each $store as card, id (card._id)}
 			<div in:recieve={{ key: id }} out:send={{ key: id }} animate:flip={{ duration: 200 }}>
 				<svelte:component

@@ -27,11 +27,11 @@ export default class CardStore {
 	 */
 	constructor(
 		private _manager: GameManager,
-		public count: number = 5,
-		public hasPairs: boolean = false,
-		private cardFaceImgs: string[] = [Face]
+		private _count: number = 5,
+		private _hasPairs: boolean = false,
+		private _cardFaceImgs: string[] = [Face]
 	) {
-		this._createDeck(this.count, this.hasPairs);
+		this._createDeck(this._count, this._hasPairs);
 		return this;
 	}
 	/**
@@ -73,34 +73,9 @@ export default class CardStore {
 	 */
 	public newHand() {
 		this.reset();
-		return this._createDeck(this.count, this.hasPairs);
+		return this._createDeck(this._count, this._hasPairs);
 	}
-	/**
-	 * @public revealAll() - Reveals (faceup) all cards
-	 * @returns void
-	 */
-	public revealAll() {
-		return this.store.update((deck) => {
-			deck.forEach((c) => {
-				c._status = 'FACEUP';
-			});
-			return deck;
-		});
-	}
-	/**
-	 * @public coverAll() - Covers all cards (facedown)
-	 * @returns Promise<void>
-	 */
-	public coverAll(): Promise<void> {
-		if (this.isCovered()) return Promise.resolve();
-		return new Promise<void>((resolve) => {
-			this.store.update((deck) => {
-				deck.forEach((card) => (card._status = 'FACEDOWN'));
-				return deck;
-			});
-			setTimeout(() => resolve(), 1000);
-		});
-	}
+
 	/**
 	 * @public isCovered() - Checks whether all cards are covered
 	 * @returns boolean
@@ -114,20 +89,61 @@ export default class CardStore {
 		if (faceUp !== 0) return false;
 		return true;
 	}
-	/**
-	 * @public countCards(status)
-	 * @param status - The status to count, returns # of face up or face down
-	 * @returns the number of cards that are currently face up
-	 */
-	public countCards(status: PlayingCard['Status']): number {
-		let count: number = 0;
-		const deck: Deck = get(this.store);
-		deck.forEach((card) => {
-			if (card._status === status) count++;
-		});
-		return count;
-	}
 
+	get count() {
+		const store = get(this.store);
+		return {
+			FACEUP: this._countCards('FACEUP'),
+			FACEDOWN: this._countCards('FACEDOWN'),
+			TOTAL: store.length
+		};
+	}
+	/**
+	 * @public removeCards(...card Ids)
+	 * @param args A list of card ids to remove.
+	 * @returns Promise<void>
+	 */
+	public removeCards(...args: number[]): Promise<void> {
+		if (args.length === 0) return Promise.reject();
+		return new Promise<void>((resolve) => {
+			this.store.update((s) => {
+				remove(s, (card) => {
+					return args.includes(card._id);
+				});
+
+				return s;
+			});
+			resolve();
+		});
+	}
+	/**
+	 * @public setStatus(status, cardIds?)
+	 * @param status The status to set the card(s) to
+	 * @param args A list of card ids can be left blank to set status for all cards.
+	 * @returns
+	 */
+	public setStatus(status: PlayingCard['Status'], ...args: number[]) {
+		return new Promise<void>((resolve) => {
+			if (args.length === 0) {
+				this.store.update((s) => {
+					s.forEach((card) => (card._status = status));
+					return s;
+				});
+				return setTimeout(() => resolve(), 1000);
+			} else {
+				args.forEach((i) => {
+					this.store.update((s) => {
+						s.forEach((c) => {
+							if (c._id === i) c._status = status;
+							return;
+						});
+						return s;
+					});
+				});
+				return setTimeout(() => resolve(), 1000);
+			}
+		});
+	}
 	/**
 	 * @public shuffle(repeat = 1) Shuffles all cards. Public Method
 	 * @param repeat Number of times to shuffle
@@ -135,7 +151,7 @@ export default class CardStore {
 	 */
 	public shuffle(repeat: number = 1) {
 		return new Promise<void>((resolve) => {
-			this.coverAll().then(() => {
+			this.setStatus('FACEDOWN').then(() => {
 				let count = 0;
 				while (count <= repeat) {
 					count++;
@@ -153,7 +169,19 @@ export default class CardStore {
 			});
 		});
 	}
-
+	/**
+	 * @private _countCards(status)
+	 * @param status - The status to count, returns # of face up or face down
+	 * @returns the number of cards that are currently face up
+	 */
+	private _countCards(status: PlayingCard['Status']): number {
+		let count: number = 0;
+		const deck: Deck = get(this.store);
+		deck.forEach((card) => {
+			if (card._status === status) count++;
+		});
+		return count;
+	}
 	/**
 	 * @private _valueExists(value) - Check to see if a card value is in use
 	 * @param val The card value to check for
@@ -166,7 +194,7 @@ export default class CardStore {
 		return false;
 	}
 	/**
-	 * @private createDeck(count, pairs) - Creates a new deck
+	 * @private _createDeck(count, pairs) - Creates a new deck
 	 * @param count The number of cards to create.
 	 * @param pairs True | False - Generate pairs or not
 	 * @returns void
@@ -187,7 +215,7 @@ export default class CardStore {
 		// Create a unique ID and a unique new value
 		const newId: number = parseInt(uniqueId());
 		let newVal: number = random(0, 100, false);
-		const randomFace = sample(this.cardFaceImgs);
+		const randomFace = sample(this._cardFaceImgs);
 		while (this._valueExists(newVal)) {
 			newVal = random(0, 100, false);
 		}
@@ -216,46 +244,5 @@ export default class CardStore {
 		this.values.set(newId, newVal);
 		this.store.update((s) => [...s, ...newCards]);
 		return newCards;
-	}
-	/**
-	 * @public removeCards(...card Ids)
-	 * @param args A list of card ids to remove.
-	 * @returns Promise<void>
-	 */
-	public removeCards(...args: number[]): Promise<void> {
-		return new Promise<void>((resolve) => {
-			this.store.update((s) => {
-				remove(s, (card) => {
-					return args.includes(card._id);
-				});
-				return s;
-			});
-			resolve();
-		});
-	}
-	/**
-	 * @public setStatus(status, cardIds?)
-	 * @param status The status to set the card(s) to
-	 * @param args A list of card ids can be left blank to set status for all cards.
-	 * @returns
-	 */
-	public setStatus(status: PlayingCard['Status'], ...args: number[]) {
-		if (args.length === 0) {
-			this.store.update((s) => {
-				s.forEach((card) => (card._status = status));
-				return s;
-			});
-		} else {
-			args.forEach((i) => {
-				this.store.update((s) => {
-					s.forEach((c) => {
-						if (c._id === i) c._status = status;
-						return;
-					});
-					return s;
-				});
-			});
-		}
-		return;
 	}
 }

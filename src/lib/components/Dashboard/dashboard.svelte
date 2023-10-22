@@ -74,8 +74,10 @@
 			<Button on:click={() => hand.setStatus('FACEUP')} variant="secondary">Reveal All</Button>
 			<Button on:click={() => hand.newHand()} variant="secondary">New Hand</Button>
 
-			<Button on:click={() => alert(hand.countCards('FACEUP'))}>Count Face Up</Button>
-			<Button on:click={() => alert(hand.countCards('FACEDOWN'))}>Count Face Up</Button>
+			<Button on:click={() => alert(hand.count.FACEUP)}>Count Face Up</Button>
+			<Button on:click={() => alert(hand.count.FACEDOWN)}>Count Face Down</Button>
+			<Button on:click={() => alert(hand.count.TOTAL)}>Count Total</Button>
+			<Button on:click={() => alert(game.vitals.current.count)}>Count Current Played</Button>
 		</div>
 
 		<Accordion.Root class="overflow-scroll">

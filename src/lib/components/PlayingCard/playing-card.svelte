@@ -82,6 +82,7 @@
 </script>
 
 <div
+	id="_card"
 	role="button"
 	on:click={handleFlip}
 	on:keypress

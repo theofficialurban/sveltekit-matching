@@ -1,10 +1,10 @@
 import { linear } from 'svelte/easing';
 import { tweened, type Tweened } from 'svelte/motion';
 import type { EasingFunction } from 'svelte/transition';
-import { GameStatus } from '$lib/classes/Game';
 import { get } from 'svelte/store';
 import type GameManager from './manager';
-
+import { GameNotifs } from './manager';
+import { GameStatus } from './game';
 export default class Timer {
 	private _tween: Tweened<number> = tweened(this._duration, {
 		duration: 1000 * this._duration,
@@ -20,8 +20,7 @@ export default class Timer {
 	start() {
 		this._manager.vitals.status = GameStatus.INPROGRESS;
 		this._tween.set(0).then(() => {
-			this._manager.vitals.status = GameStatus.ENDED;
-			this._manager.vitals.callback('gameover');
+			this._manager.notifications.next({ status: GameNotifs.GAME_OVER });
 		});
 	}
 	stop() {
@@ -31,13 +30,11 @@ export default class Timer {
 		}
 		const time = get(this._tween);
 		this._manager.vitals.status = GameStatus.ENDED;
-		//this._manager.vitals.callback<{ time: number }>('stop', { time: time });
 		return this._tween.set(time, { duration: 0 });
 	}
 	reset() {
 		this._tween.set(this._duration, { duration: 0 });
 		this._manager.vitals.status = GameStatus.NOTSTARTED;
-		this._manager.vitals.callback('reset');
 	}
 	hasTime() {
 		const time = get(this._tween);

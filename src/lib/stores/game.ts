@@ -1,23 +1,39 @@
-import type { CardLikeData } from '$lib/classes/Played';
 import { get, writable, type Writable } from 'svelte/store';
 import { uniqueId } from 'lodash-es';
 import type { GameRule } from '$lib/classes/Rule';
 import { Rule } from '$lib/classes/Rule';
 import type GameManager from './manager';
+import { GameNotifs } from './manager';
+import type { CardLike, CardMove } from '$lib/types/Card';
 interface _GameVitals {
 	_gameId: number;
 	_faceUp: Map<1 | 2, CardLikeData>;
 	_faceUpCt: number;
 	_score: number;
 	_status: GameStatus;
+	_statusString: string;
 }
-enum GameStatus {
-	WIN,
+export enum GameStatus {
 	ERROR,
-	LOSS,
 	INPROGRESS,
 	NOTSTARTED,
 	ENDED
+}
+export type CardLikeData = CardMove | CardLike | null;
+export function resolveStatus(status: GameStatus) {
+	switch (status) {
+		case 0:
+			return 'ERROR';
+
+		case 1:
+			return 'IN PROGRESS';
+		case 2:
+			return 'NO GAME';
+		case 3:
+			return 'GAME OVER';
+		default:
+			return 'ERROR';
+	}
 }
 export type Callback = (_vitals: GameVitals, ...args: unknown[]) => boolean | Promise<boolean>;
 type CallbacksCollection = Map<string, Callback>;
@@ -64,11 +80,15 @@ export default class GameVitals {
 			const { one, two } = this.current;
 			if (one && two) {
 				this.setScore(2);
+
 				const clear = () =>
 					this._manager.hand
 						.removeCards(one._id, two._id)
 						.then(() => {
-							console.log(`Current Score ${this.current.score}`);
+							this._manager.notifications.next({
+								status: GameNotifs.REMAINDER,
+								data: { score: this.current.score, remaining: this._manager.hand.count.TOTAL }
+							});
 							this.clearPlay();
 							resolve();
 						})
@@ -110,19 +130,7 @@ export default class GameVitals {
 		const newRule = new Rule(name, rule);
 		this._rules.set(newRule.info.name, newRule);
 	}
-	public addCallback(name: string, callback: Callback): boolean {
-		if (this._callbacks.has(name)) return false;
-		this._callbacks.set(name, callback);
-		return true;
-	}
-	public callback<T = unknown | object>(name: string, ...args: T[]) {
-		return new Promise((resolve, reject) => {
-			const cb = this._callbacks.get(name);
-			if (cb === undefined) return reject('Callback Not Found');
-			const result = cb(this, ...args);
-			if (result === true) resolve(true);
-		});
-	}
+
 	public _countCurrentlyPlayed() {
 		const store = get(this._store);
 		let faceUpCards = 0;
@@ -167,7 +175,8 @@ export default class GameVitals {
 			_faceUp: faceUp,
 			_faceUpCt: 0,
 			_score: 0,
-			_status: GameStatus.NOTSTARTED
+			_status: GameStatus.NOTSTARTED,
+			_statusString: resolveStatus(GameStatus.NOTSTARTED)
 		});
 
 		return this;
@@ -218,30 +227,16 @@ export default class GameVitals {
 		const sval = get(this._store);
 		return sval._status;
 	}
+	get statusHuman() {
+		const sval = get(this._store);
+		return resolveStatus(sval._status);
+	}
 	set status(status: GameStatus) {
 		this._store.update((s) => {
-			return { ...s, _status: status };
+			return { ...s, _status: status, _statusString: resolveStatus(status) };
 		});
 	}
 
-	static resolveStatus(status: GameStatus) {
-		switch (status) {
-			case 0:
-				return 'Win';
-			case 1:
-				return 'Error';
-			case 2:
-				return 'Loss';
-			case 3:
-				return 'In Progress';
-			case 4:
-				return 'Not Started';
-			case 5:
-				return 'Ended';
-			default:
-				return 'Error';
-		}
-	}
 	get admin() {
 		return {
 			callbacks: this._callbacks,

@@ -1,31 +1,29 @@
 <script lang="ts">
-	import { GameStatus } from '$lib/classes/Game';
-	import GameVitals from '$lib/stores/game';
 	import type GameManager from '$lib/stores/manager';
-	import Dashboard from '../Dashboard/dashboard.svelte';
+	import { onDestroy } from 'svelte';
+	import GameDash from '../GameDash/game-dash.svelte';
 	import CardHand from '../Hand/card-hand.svelte';
-	import Timer from '../Timer/timer.svelte';
 	import GameOver from './game-over.svelte';
 	import NoGame from './no-game.svelte';
+	import { GameStatus } from '$lib/stores/game';
 	export let game: GameManager;
 	const {
 		settings: { controls },
 		vitals: { store: vitalsStore }
 	} = game;
+	onDestroy(() => {
+		game.resetAll();
+	});
 </script>
 
-{GameVitals.resolveStatus($vitalsStore._status)}
-<div class="text-3xl text-center">
-	<Timer {game} />
-</div>
 {#if controls}
-	<Dashboard {game} />
+	<GameDash {game} />
 {/if}
 {#if !game}
 	Error Initializing Game
 {:else if $vitalsStore._status === GameStatus.NOTSTARTED}
 	<NoGame {game} />
-{:else if $vitalsStore._status === GameStatus.ENDED || $vitalsStore._status === GameStatus.LOSS}
+{:else if $vitalsStore._status === GameStatus.ENDED}
 	<GameOver {game} />
 {:else}
 	<CardHand {game} />

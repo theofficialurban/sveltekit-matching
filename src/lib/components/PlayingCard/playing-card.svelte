@@ -42,40 +42,47 @@
 	 * @prop rotation - A tween 0 -> 360 which flips the card
 	 * @prop fade - -1 -> 1 applied with x^2 allowing a fade at 180 to show the flip of the card
 	 */
-	const transitions: { rotation: Tweened<number>; fade: Tweened<number> } = {
+	const transitions: PlayingCard['Transition']['store'] = {
 		rotation: tweened(0, { duration: 1000 }),
 		fade: tweened(-1, { duration: 1000 })
 	};
 	const { rotation, fade } = transitions;
-	const handleFlip = () => {
-		if (state._status === 'FACEUP') {
-			// Flip to face down
-			if (dispatch('facedown', { _id: state._id, _value: state._value }, { cancelable: true })) {
-				state = { ...state, _status: 'FACEDOWN' };
-				dispatch('move', {
-					_id: state._id,
-					_value: state._value,
-					_prevStatus: 'FACEUP',
-					_currentStatus: 'FACEDOWN'
-				});
-			}
-		} else if (state._status === 'FACEDOWN') {
-			if (dispatch('faceup', { _id: state._id, _value: state._value }, { cancelable: true })) {
-				state = { ...state, _status: 'FACEUP' };
-				dispatch('move', {
-					_id: state._id,
-					_value: state._value,
-					_prevStatus: 'FACEDOWN',
-					_currentStatus: 'FACEUP'
-				});
-			}
-		}
-	};
+	// const handleFlip = () => {
+	// 	if (state._status === 'FACEUP') {
+	// 		// Flip to face down
+	// 		 {
+	// 			state = { ...state, _status: 'FACEDOWN' };
+
+	// 			dispatch('move', {
+	// 				_id: state._id,
+	// 				_value: state._value,
+	// 				_prevStatus: 'FACEUP',
+	// 				_currentStatus: 'FACEDOWN'
+	// 			});
+	// 		}
+	// 	} else if (state._status === 'FACEDOWN') {
+	// 		if () {
+	// 			state = { ...state, _status: 'FACEUP' };
+	// 			dispatch('move', {
+	// 				_id: state._id,
+	// 				_value: state._value,
+	// 				_prevStatus: 'FACEDOWN',
+	// 				_currentStatus: 'FACEUP'
+	// 			});
+	// 		}
+	// 	}
+	// };
 	/* Reactively Check for Status Changes and Rotate / Fade Card Accordingly */
-	$: if (state._status === 'FACEDOWN') {
+	$: if (
+		state._status === 'FACEDOWN' &&
+		dispatch('facedown', { _id: state._id, _value: state._value }, { cancelable: true })
+	) {
 		rotation.set(0);
 		fade.set(-1);
-	} else if (state._status === 'FACEUP') {
+	} else if (
+		state._status === 'FACEUP' &&
+		dispatch('faceup', { _id: state._id, _value: state._value }, { cancelable: true })
+	) {
 		rotation.set(360);
 		fade.set(1);
 	}
@@ -84,7 +91,7 @@
 <div
 	id="_card"
 	role="button"
-	on:click={handleFlip}
+	on:click
 	on:keypress
 	tabindex={state._id}
 	use:cardflip={{ rotation: $rotation, fade: $fade }}

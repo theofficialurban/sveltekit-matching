@@ -1,18 +1,19 @@
 import type PlayingCard from '$lib/types/Card';
 import { writable, get, type Writable } from 'svelte/store';
 import Face from '$lib/assets/card-face.png';
-import { uniqueId, random, find, shuffle, sample, remove } from 'lodash-es';
+import { uniqueId, random, find, shuffle, sample, remove, isUndefined } from 'lodash-es';
 import NotPictured from '$lib/assets/not-pictured.png';
 import type GameManager from './manager';
 type Card = PlayingCard['State'];
 type Deck = PlayingCard['Deck'];
+type GetCountReturn = { FACEUP: number; FACEDOWN: number; TOTAL: number };
 /**
  * @class CardStore
  * @classdesc The store of cards, a deck. Inclues helper methods and functions for interacting with the
  * store and the cards.
- * @property @public store - The Svelte Store holding the cards in a hand.
- * @property @public values - A map of card values where Card ID -> Card Value
- * @property @public pairs - A map of pairs where Value -> pairs [c1, c2] where c1 and c2 share the value
+ * @property store - The Svelte Store holding the cards in a hand.
+ * @property values - A map of card values where Card ID -> Card Value
+ * @property pairs - A map of pairs where Value -> pairs [c1, c2] where c1 and c2 share the value
  */
 export default class CardStore {
 	public store: Writable<Deck> = writable<Deck>([]);
@@ -37,29 +38,26 @@ export default class CardStore {
 	/**
 	 * @public find - Finds a card in the deck
 	 * @param cardId The id of the card to find in the deck
-	 * @returns Promise<PlayingCard>
+	 * @returns Promise<PlayingCard['State']>
 	 */
 	public find(cardId: number): Promise<Card> {
 		return new Promise<Card>((resolve, reject) => {
-			let result: Card | undefined;
-			const unsubscriber = this.store.subscribe((deck) => {
-				result = deck.find((c) => c._id == cardId);
+			const store: Card[] = get(this.store);
+			const results = store.find((c) => {
+				return c._id === cardId;
 			});
-			if (result === undefined) {
-				unsubscriber();
+			if (isUndefined(results)) {
 				reject('No Results');
-			}
-			if (result !== undefined) {
-				unsubscriber();
-				resolve(result);
+			} else {
+				resolve(results);
 			}
 		});
 	}
 	/**
-	 * @private reset() - Resets the deck clearing all stores.
+	 * @public reset() - Resets the deck clearing all stores.
 	 * @returns Promise<void>
 	 */
-	private reset() {
+	public reset(): Promise<void> {
 		return new Promise<void>((resolve) => {
 			this.store.set([]);
 			this.values.clear();
@@ -69,18 +67,19 @@ export default class CardStore {
 	}
 	/**
 	 * @public newHand() - Resets the deck and deals a new hand.
-	 * @returns void
+	 * @returns Promise<void>
 	 */
-	public newHand() {
-		this.reset();
-		return this._createDeck(this._count, this._hasPairs);
+	public newHand(): Promise<void> {
+		return this.reset().then(() => {
+			this._createDeck(this._count, this._hasPairs);
+		});
 	}
 
 	/**
-	 * @public isCovered() - Checks whether all cards are covered
+	 * @public allCovered() - Checks whether all cards are covered
 	 * @returns boolean
 	 */
-	public isCovered(): boolean {
+	public allCovered(): boolean {
 		let faceUp = 0;
 		const deck: Deck = get(this.store);
 		deck.forEach((card) => {
@@ -89,13 +88,16 @@ export default class CardStore {
 		if (faceUp !== 0) return false;
 		return true;
 	}
-
-	get count() {
-		const store = get(this.store);
+	/**
+	 * @get count()
+	 * Gets the counts easily.
+	 * @returns {GetCountReturn}
+	 */
+	get count(): GetCountReturn {
 		return {
-			FACEUP: this._countCards('FACEUP'),
-			FACEDOWN: this._countCards('FACEDOWN'),
-			TOTAL: store.length
+			FACEUP: this.countCards('FACEUP'),
+			FACEDOWN: this.countCards('FACEDOWN'),
+			TOTAL: this.countCards()
 		};
 	}
 	/**
@@ -122,7 +124,7 @@ export default class CardStore {
 	 * @param args A list of card ids can be left blank to set status for all cards.
 	 * @returns
 	 */
-	public setStatus(status: PlayingCard['Status'], ...args: number[]) {
+	public setStatus(status: PlayingCard['Status'], ...args: number[]): Promise<void> {
 		return new Promise<void>((resolve) => {
 			if (args.length === 0) {
 				this.store.update((s) => {
@@ -149,7 +151,7 @@ export default class CardStore {
 	 * @param repeat Number of times to shuffle
 	 * @returns Promise to be resolved when all are completed
 	 */
-	public shuffle(repeat: number = 1) {
+	public shuffle(repeat: number = 1): Promise<void> {
 		return new Promise<void>((resolve) => {
 			this.setStatus('FACEDOWN').then(() => {
 				let count = 0;
@@ -170,13 +172,14 @@ export default class CardStore {
 		});
 	}
 	/**
-	 * @private _countCards(status)
+	 * @public countCards(status)
 	 * @param status - The status to count, returns # of face up or face down
-	 * @returns the number of cards that are currently face up
+	 * @returns the count of the cards based on the status, null may be passed for total cards.
 	 */
-	private _countCards(status: PlayingCard['Status']): number {
+	public countCards(status: PlayingCard['Status'] | null = null): number {
 		let count: number = 0;
 		const deck: Deck = get(this.store);
+		if (status === null) return deck.length;
 		deck.forEach((card) => {
 			if (card._status === status) count++;
 		});
@@ -199,7 +202,7 @@ export default class CardStore {
 	 * @param pairs True | False - Generate pairs or not
 	 * @returns void
 	 */
-	private _createDeck(count: number, pairs: boolean) {
+	private _createDeck(count: number, pairs: boolean): void {
 		for (let index = 0; index < count; index++) {
 			this._newCard(pairs);
 		}

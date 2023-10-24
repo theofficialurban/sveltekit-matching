@@ -36,10 +36,8 @@ export function resolveStatus(status: GameStatus) {
 	}
 }
 export type Callback = (_vitals: GameVitals, ...args: unknown[]) => boolean | Promise<boolean>;
-type CallbacksCollection = Map<string, Callback>;
 export default class GameVitals {
 	private _store: Writable<_GameVitals> = writable<_GameVitals>();
-	private _callbacks: CallbacksCollection = new Map<string, Callback>();
 	private _rules: Map<string, Rule> = new Map<string, Rule>();
 	constructor(private _manager: GameManager) {
 		this._resetStore();
@@ -52,7 +50,7 @@ export default class GameVitals {
 	}
 
 	public attemptPlay(card: CardLikeData) {
-		if (this.current.count >= this._manager.settings.playSize) return false;
+		if (this.current.faceUpCt >= this._manager.settings.playSize) return false;
 		if (!this.current.one) {
 			if (this._setCurrent(1, card)) return true;
 		}
@@ -239,16 +237,23 @@ export default class GameVitals {
 
 	get admin() {
 		return {
-			callbacks: this._callbacks,
 			rules: this._rules
 		};
 	}
+	/**
+	 * @get current()
+	 * Gets the following
+	 * 1) Card (or null) in slot one
+	 * 2) Card (or null) in slot two
+	 * 3) faceUpCt the # of cards that are currently face up
+	 */
 	get current() {
 		const store = get(this._store);
 		return {
 			one: store._faceUp.get(1) ?? null,
 			two: store._faceUp.get(2) ?? null,
-			count: store._faceUpCt,
+			faceUpCt: store._faceUpCt,
+			remainingCards: this._manager.hand.count.TOTAL,
 			score: store._score
 		};
 	}

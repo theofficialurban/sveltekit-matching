@@ -25,29 +25,19 @@
 		if ($timerStore <= 0) return preventDefault();
 		// If play succeeds
 		if (!vitals.attemptPlay(detail)) return preventDefault();
-		count++;
-		if (count === playSize) {
-			vitals
-				.gameResults()
-				.then(() => {
-					count -= 2;
-					notifications.next({ status: GameNotifs.SCORE });
-				})
-				.catch(() => {
-					count -= 2;
-					setTimeout(() => vitals.clearPlay(), 1000);
-				});
-		}
+		$vitalsStore._faceUpCt++;
+		game.notifications.next({ status: GameNotifs.FACEUP, data: { card: detail, faceUpCt: count } });
 	};
 	const handleFaceDown = ({ preventDefault, detail }: ComponentEvents<PlayingCard>['facedown']) => {
 		// Make sure game is in progress
 		if ($vitalsStore._status !== GameStatus.INPROGRESS) return preventDefault();
 		if ($timerStore <= 0) return preventDefault();
+		game.notifications.next({ status: GameNotifs.FACEDOWN, data: { card: detail } });
 		if (!vitals.resetPlay(detail)) {
 			console.error('Cannot Remove Card from Played');
 			return preventDefault();
 		}
-		count--;
+		$vitalsStore._faceUpCt--;
 	};
 	const [send, recieve] = crossfade({
 		duration: 1000,

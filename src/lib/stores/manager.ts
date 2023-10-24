@@ -1,9 +1,9 @@
 import type { EasingFunction } from 'svelte/transition';
 import CardStore from './cards';
-import GameVitals, { GameStatus } from './game';
+import GameVitals, { GameStatus, type CardLikeData } from './game';
 import Timer from './timer';
 import { Subject, interval, throttle } from 'rxjs';
-import CardSelection from './current';
+import { get } from 'svelte/store';
 type Settings = {
 	playSize: number;
 	controls: boolean;
@@ -23,13 +23,17 @@ export enum GameNotifs {
 	SCORE,
 	RESET,
 	GAME_OVER,
-	REMAINDER
+	REMAINDER,
+	FACEUP,
+	FACEDOWN
 }
 type Notification = {
 	status: GameNotifs;
 	data?: {
 		score?: number;
 		remaining?: number;
+		card?: CardLikeData;
+		faceUpCt?: number;
 	};
 };
 export default class GameManager {
@@ -51,11 +55,7 @@ export default class GameManager {
 		this.vitals = new GameVitals(this);
 		// Create the game timer
 		this.timer = new Timer(this, this.settings.timer.duration, this.settings.timer.easing);
-		// Create card selection
-		const f = new CardSelection(this, 2);
-		f.play({ _id: 1, _value: 2 });
-		f.play({ _id: 3, _value: 4 });
-		console.log(f);
+
 		// Set currently played to null.
 		this.unsubscribe = this.#listen();
 		return this;
@@ -74,6 +74,8 @@ export default class GameManager {
 				return interval(5000);
 			case GameNotifs.RESET:
 				return interval(2000);
+			case GameNotifs.FACEUP:
+				return Promise.resolve();
 			default:
 				return interval(1000);
 		}
@@ -89,6 +91,25 @@ export default class GameManager {
 						this.hand.shuffle(5).then(() => {
 							this.timer.start();
 						});
+						break;
+					}
+					case GameNotifs.FACEUP: {
+						const store = get(this.vitals.store);
+						const count = store._faceUpCt;
+						console.log(count);
+						if (!count) return console.log('Return');
+						if (count === this.settings.playSize) {
+							this.vitals
+								.gameResults()
+								.then(() => {
+									this.vitals.store.update((x) => ({ ...x, _faceUpCt: count - 2 }));
+									this.notifications.next({ status: GameNotifs.SCORE });
+								})
+								.catch(() => {
+									this.vitals.store.update((x) => ({ ...x, _faceUpCt: count - 2 }));
+									setTimeout(() => this.vitals.clearPlay(), 1000);
+								});
+						}
 						break;
 					}
 					case GameNotifs.REMAINDER: {

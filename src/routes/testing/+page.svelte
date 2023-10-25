@@ -1,24 +1,18 @@
 <script lang="ts">
-	import type { PageData } from './$types';
-	import BicycleCard from '$lib/classes/Card';
-	import { writable } from 'svelte/store';
-	import CardComponent from '$lib/components/PlayingCard/playing-card.svelte';
-	import type PlayingCard from '$lib/types/Card';
-	export let data: PageData;
-	const store = writable<Map<number, BicycleCard>>(new Map<number, BicycleCard>());
-	const card = new BicycleCard(store);
-	const card2 = new BicycleCard(store);
+	import * as Bicycle from '$lib/components/BicycleCard/index';
+	import f1 from '$lib/assets/card-face.png';
+	import f2 from '$lib/assets/card2.png';
+	import cover from '$lib/assets/card-cover.png';
+	import { onDestroy, onMount } from 'svelte';
+	const deck = Bicycle.Deck;
+	deck.createCards(2, { pair: true, faceImages: [f1, f2], cover: cover });
+	onDestroy(() => {
+		deck.reset();
+		console.log(deck);
+	});
 </script>
 
-{#each $store as [cardId, iCard]}
-	<button on:click={() => iCard.delete()}>Delete Lol</button>
-	<svelte:component
-		this={CardComponent}
-		on:click={() =>
-			iCard.update((s, [id, c]) => {
-				c.state._status = 'FACEUP';
-			})}
-		on:faceup={(e) => console.log(e.detail)}
-		bind:state={iCard.state}
-	/>
+<button on:click={() => console.log(deck.pairs)}>Pairsss</button>
+{#each deck as [id, card]}
+	<Bicycle.Card on:click={() => card.flip()} bind:store={card.store} />
 {/each}

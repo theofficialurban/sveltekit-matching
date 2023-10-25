@@ -1,81 +1,52 @@
-import type PlayingCard from '$lib/types/Card';
-import { uniqueId, random } from 'lodash-es';
-import NotPictured from '$lib/assets/not-pictured.png';
-import type { Writable } from 'svelte/store';
-type CardState = PlayingCard['State'];
-//type HandStore = Writable<BicycleCard[]>;
-type HandStore = Writable<Map<number, BicycleCard>>;
-type UpdateCallback = (s: Map<number, BicycleCard>, card: [number, BicycleCard]) => void;
-export default class BicycleCard {
+import Cover from '$lib/assets/card-cover.png';
+import { writable } from 'svelte/store';
+import type BicycleCard from '$lib/types/BicycleCard';
+import { uniqueId } from 'lodash-es';
+export default class BicycleCardData {
 	readonly #_id: number;
 	readonly #_value: number;
-	#_status: PlayingCard['Status'] = 'FACEDOWN';
-	#_image: string = NotPictured;
-	state: CardState;
-	#_handStore: HandStore;
-	constructor(_handStore: HandStore) {
-		this.#_handStore = _handStore;
+	readonly #_image: string;
+	#_deck: BicycleCard['Deck'];
+	store: BicycleCard['Store'];
 
-		this.#_id = parseInt(uniqueId());
-		this.#_value = random(0, 100, false);
-		this.state = {
-			_id: this.#_id,
+	constructor(_deck: BicycleCard['Deck'], data: BicycleCard['State']) {
+		this.#_deck = _deck;
+		const { _id, _value, _image } = data;
+		this.#_id = _id;
+		this.#_value = _value;
+		this.#_image = _image;
+		this.store = writable<BicycleCard['State']>({ ...data });
+		this.#_deck.set(this.#_id, this);
+		return this;
+	}
+	get id() {
+		return this.#_id;
+	}
+	get value() {
+		return this.#_value;
+	}
+	flip() {
+		return this.store.update((c) => {
+			const current = c._status;
+			switch (current) {
+				case 'FACEDOWN': {
+					return { ...c, _status: 'FACEUP' };
+				}
+				case 'FACEUP': {
+					return { ...c, _status: 'FACEDOWN' };
+				}
+			}
+		});
+	}
+	makePair() {
+		const pairId = parseInt(uniqueId());
+		new BicycleCardData(this.#_deck, {
+			_id: pairId,
 			_value: this.#_value,
 			_status: 'FACEDOWN',
-			_image: NotPictured
-		};
-		this.#_handStore.update((s) => {
-			s.set(this.#_id, this);
-			return s;
+			_image: this.#_image,
+			_cover: Cover
 		});
-		return this;
-	}
-	public flip(): this {
-		switch (this.state._status) {
-			case 'FACEUP':
-				this.state._status = 'FACEDOWN';
-				break;
-			case 'FACEDOWN':
-				this.state._status = 'FACEUP';
-				break;
-		}
-		this.update((s) => s);
-		return this;
-	}
-	public delete() {
-		this.#_handStore.update((s) => {
-			s.delete(this.#_id);
-			return s;
-		});
-	}
-	get status() {
-		switch (this.state._status) {
-			case 'FACEUP':
-				return true;
-			case 'FACEDOWN':
-				return false;
-		}
-	}
-	set status(n: boolean | PlayingCard['Status']) {
-		switch (n) {
-			case true:
-				this.state._status = 'FACEUP';
-				break;
-			case 'FACEUP':
-				this.state._status = 'FACEUP';
-				break;
-			case false:
-				this.state._status = 'FACEDOWN';
-				break;
-			case 'FACEDOWN':
-				this.state._status = 'FACEDOWN';
-				break;
-		}
-	}
-	update(cb: UpdateCallback) {
-		this.#_handStore.update((s) => {
-			cb(s, [this.#_id, this]);
-			return s;
-		});
+		this.#_deck.pairs.add([this.#_id, pairId]);
 	}
 }

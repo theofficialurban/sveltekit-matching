@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type BicycleCard from '$lib/types/BicycleCard';
+
 	import { SvelteComponent } from 'svelte';
 	export class BicycleCardFace extends SvelteComponent<
 		{ store: BicycleCard['Store']; class: string },

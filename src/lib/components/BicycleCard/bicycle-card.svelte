@@ -5,11 +5,13 @@
 	import PlayingCardCover from './cover/bicycle-card-cover.svelte';
 	import type BicycleCard from '$lib/types/BicycleCard';
 	import { SvelteComponent, createEventDispatcher } from 'svelte';
+	import type ICardGame from '$lib/types/CardGame';
 	export class BicycleCardComponent extends SvelteComponent<
-		{ store: BicycleCard['Store']; class: string },
+		{ store: BicycleCard['Store']; class: string; game: ICardGame['GAME'] },
 		BicycleCard['Events'],
 		{}
 	> {}
+	export let game: ICardGame['GAME'];
 	export let store: BicycleCard['Store'];
 	const className: string = '';
 	export { className as class };
@@ -43,7 +45,7 @@
 	class={`w-[250px] h-[350px] relative text-black playing-card p-3 ${className}`}
 >
 	{#if $rotation > 180}
-		<PlayingCardFace {store} />
+		<PlayingCardFace class="" {store} />
 	{:else if $rotation <= 180}
 		<PlayingCardCover {store} />
 	{/if}

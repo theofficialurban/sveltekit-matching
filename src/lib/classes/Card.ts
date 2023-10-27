@@ -1,22 +1,23 @@
 import Cover from '$lib/assets/card-cover.png';
-import { writable } from 'svelte/store';
+import { get, writable } from 'svelte/store';
 import type BicycleCard from '$lib/types/BicycleCard';
 import { uniqueId } from 'lodash-es';
+import type BicycleCardDeck from './Deck';
 export default class BicycleCardData {
 	readonly #_id: number;
 	readonly #_value: number;
 	readonly #_image: string;
-	#_deck: BicycleCard['Deck'];
+	#_deck: BicycleCardDeck;
 	store: BicycleCard['Store'];
 
-	constructor(_deck: BicycleCard['Deck'], data: BicycleCard['State']) {
+	constructor(_deck: BicycleCardDeck, data: BicycleCard['State']) {
 		this.#_deck = _deck;
 		const { _id, _value, _image } = data;
 		this.#_id = _id;
 		this.#_value = _value;
 		this.#_image = _image;
 		this.store = writable<BicycleCard['State']>({ ...data });
-		this.#_deck.set(this.#_id, this);
+		this.#_deck.addCard(this);
 		return this;
 	}
 	get id() {
@@ -25,7 +26,11 @@ export default class BicycleCardData {
 	get value() {
 		return this.#_value;
 	}
-	flip() {
+	get status() {
+		const store = get(this.store);
+		return store._status;
+	}
+	flip = () => {
 		return this.store.update((c) => {
 			const current = c._status;
 			switch (current) {
@@ -37,8 +42,16 @@ export default class BicycleCardData {
 				}
 			}
 		});
-	}
-	makePair() {
+	};
+	setStatus = (_status: BicycleCard['Status']): Promise<void> => {
+		return new Promise<void>((resolve) => {
+			this.store.update((s) => {
+				return { ...s, _status };
+			});
+			resolve();
+		});
+	};
+	makePair = () => {
 		const pairId = parseInt(uniqueId());
 		new BicycleCardData(this.#_deck, {
 			_id: pairId,
@@ -48,5 +61,5 @@ export default class BicycleCardData {
 			_cover: Cover
 		});
 		this.#_deck.pairs.add([this.#_id, pairId]);
-	}
+	};
 }

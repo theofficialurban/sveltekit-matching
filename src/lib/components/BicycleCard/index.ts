@@ -1,5 +1,14 @@
+import NotPictured from '$lib/assets/not-pictured.png';
+import Face1 from '$lib/assets/card-face.png';
+import Face2 from '$lib/assets/card2.png';
+import Cover from '$lib/assets/card-cover.png';
 import BicycleCardComponent from './bicycle-card.svelte';
-import BicycleCardDeck from '$lib/classes/Deck';
-const Deck = new BicycleCardDeck();
+import CardGame from '$lib/classes/CardGame';
+const Game = new CardGame(5, {
+	pair: true,
+	faceImages: [Face1, Face2, NotPictured],
+	cover: Cover,
+	adminControls: true
+});
 const Card = BicycleCardComponent;
-export { Card, Deck };
+export { Card, Game };

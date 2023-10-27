@@ -2,6 +2,8 @@ import type { Tweened } from 'svelte/motion';
 import type { Writable } from 'svelte/store';
 import type BicycleCardComponent from '$lib/components/BicycleCard/bicycle-card.svelte';
 import type BicycleCardDeck from '$lib/classes/Deck';
+import type BicycleCardData from '$lib/classes/Card';
+import type { SvelteComponent } from 'svelte';
 /**
  * @type Card
  * @param _id - The unique ID (key) of the card
@@ -16,6 +18,7 @@ type Card = {
 	_value: number;
 	_status: CardStatus;
 	_cover?: string;
+	_svgGraphic?: SvelteComponent;
 };
 /**
  * @type Status
@@ -27,6 +30,7 @@ type CardLike = Partial<Card> & { _id: number; _value: number };
 type CardMove = CardLike & { _prevStatus: CardStatus; _currentStatus: CardStatus };
 export default interface BicycleCard {
 	Deck: BicycleCardDeck;
+	DeckStore: Writable<BicycleCardData[]>;
 	State: Card;
 	Component: BicycleCardComponent;
 	Store: Writable<Card>;

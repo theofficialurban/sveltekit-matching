@@ -12,7 +12,7 @@
 </script>
 
 <img
-	class={`rounded-xl object-contain ${className}`}
+	class={`rounded-xl object-contain  ${className}`}
 	src={$store._cover}
 	alt={`Card${$store._id}`}
 />

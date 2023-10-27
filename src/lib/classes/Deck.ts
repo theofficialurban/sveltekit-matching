@@ -4,10 +4,14 @@ import { uniqueId, random, isUndefined, sample, shuffle } from 'lodash-es';
 import NotPictured from '$lib/assets/not-pictured.png';
 import Cover from '$lib/assets/card-cover.png';
 import { get, writable, type Writable } from 'svelte/store';
+import type CardGame from './CardGame';
 export default class BicycleCardDeck {
+	#_game: CardGame;
 	pairs: Set<[number, number]> = new Set<[number, number]>();
 	#_deck: Writable<BicycleCardData[]> = writable<BicycleCardData[]>([]);
-	constructor() {}
+	constructor(_game: CardGame) {
+		this.#_game = _game;
+	}
 
 	#_newId(): number {
 		return parseInt(uniqueId());

@@ -45,7 +45,7 @@
 	class={`w-[250px] h-[350px] relative text-black playing-card p-3 ${className}`}
 >
 	{#if $rotation > 180}
-		<PlayingCardFace class="" {store} />
+		<PlayingCardFace {store} />
 	{:else if $rotation <= 180}
 		<PlayingCardCover {store} />
 	{/if}

@@ -38,7 +38,7 @@ export default class CardGame {
 		// Admin Controls
 		this.adminControls = options?.adminControls ?? false;
 		// Create the new deck of cards.
-		this.deck = new BicycleCardDeck();
+		this.deck = new BicycleCardDeck(this);
 		// Add some cards to the deck.
 		this.deck.createCards(count, options);
 		// Begin listening to the Subject.

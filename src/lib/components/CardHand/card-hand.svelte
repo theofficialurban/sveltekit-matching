@@ -28,13 +28,13 @@
 {/if}
 
 <div class="w-full container grid grid-cols-5">
-	{#each $store as card (card.id)}
+	{#each $store as { store, flip: flipCard, id } (id)}
 		<div
-			in:recieve={{ key: card.id }}
-			out:send={{ key: card.id }}
+			in:recieve={{ key: id }}
+			out:send={{ key: id }}
 			animate:flip={{ duration: 500, easing: quintOut }}
 		>
-			<Bicycle.Card on:click={() => card.flip()} {game} store={card.store} />
+			<Bicycle.Card on:click={() => flipCard()} {game} {store} />
 		</div>
 	{/each}
 </div>

@@ -7,6 +7,7 @@ export default class BicycleCardData {
 	readonly #_id: number;
 	readonly #_value: number;
 	readonly #_image: string;
+	#_in_play: 1 | 2 | null = null;
 	#_deck: BicycleCardDeck;
 	store: BicycleCard['Store'];
 
@@ -29,6 +30,27 @@ export default class BicycleCardData {
 	get status() {
 		const store = get(this.store);
 		return store._status;
+	}
+	unPlayCard = () => {
+		if (this.#_in_play) {
+			this.game.clearPlay(this.#_in_play);
+			return true;
+		}
+		return false;
+	};
+	playCard = () => {
+		const play = this.game.makePlay(this);
+		if (play) {
+			this.#_in_play = play;
+			if (play === 2) {
+				this.game.play$({ status: this.game.actions.check_cards });
+			}
+			return true;
+		}
+		return false;
+	};
+	private get game() {
+		return this.#_deck.game;
 	}
 	flip = () => {
 		return this.store.update((c) => {

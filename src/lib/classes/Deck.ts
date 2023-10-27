@@ -6,11 +6,11 @@ import Cover from '$lib/assets/card-cover.png';
 import { get, writable, type Writable } from 'svelte/store';
 import type CardGame from './CardGame';
 export default class BicycleCardDeck {
-	#_game: CardGame;
+	game: CardGame;
 	pairs: Set<[number, number]> = new Set<[number, number]>();
 	#_deck: Writable<BicycleCardData[]> = writable<BicycleCardData[]>([]);
 	constructor(_game: CardGame) {
-		this.#_game = _game;
+		this.game = _game;
 	}
 
 	#_newId(): number {
@@ -86,7 +86,7 @@ export default class BicycleCardDeck {
 
 					args.forEach((id) => {
 						const card = this.getCardById(id);
-						console.log(card);
+
 						if (card) {
 							card.setStatus(status);
 						}

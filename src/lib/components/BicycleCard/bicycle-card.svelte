@@ -27,11 +27,13 @@
 	};
 	const { rotation, fade } = transitions;
 	$: if ($store._status === 'FACEDOWN' && dispatch('facedown', $store, { cancelable: true })) {
-		rotation.set(0);
-		fade.set(-1);
+		Promise.all([rotation.set(0), fade.set(-1)]).then(() => {
+			dispatch('complete', $store);
+		});
 	} else if ($store._status === 'FACEUP' && dispatch('faceup', $store, { cancelable: true })) {
-		rotation.set(360);
-		fade.set(1);
+		Promise.all([rotation.set(360), fade.set(1)]).then(() => {
+			dispatch('complete', $store);
+		});
 	}
 </script>
 

@@ -9,9 +9,11 @@
 
 	const {
 		deck: { setStatus, shuffle, getDeck },
-		utils: { gameAction },
-		play$
+		actions,
+		play$,
+		gameStore
 	} = game;
+	let inPlay = $gameStore._in_play;
 	let cardIdControl: string = 'null';
 	let statusSelection: BicycleCard['Status'];
 	const store = getDeck();
@@ -52,10 +54,11 @@
 			<Accordion.Item value="2">
 				<Accordion.Trigger>Game Subject</Accordion.Trigger>
 				<Accordion.Content>
-					<Button on:click={() => play$({ status: gameAction('start') })}>start</Button>
-					<Button on:click={() => play$({ status: gameAction('end') })}>end</Button>
-					<Button on:click={() => play$({ status: gameAction('match') })}>match</Button>
-					<Button on:click={() => play$({ status: gameAction('no_match') })}>no_match</Button>
+					<Button on:click={() => play$({ status: actions.start })}>start</Button>
+					<Button on:click={() => play$({ status: actions.end })}>end</Button>
+					<Button on:click={() => play$({ status: actions.match })}>match</Button>
+					<Button on:click={() => play$({ status: actions.no_match })}>no_match</Button>
+					<Button on:click={() => play$({ status: actions.check_cards })}>check_cards</Button>
 				</Accordion.Content>
 			</Accordion.Item>
 			<Accordion.Item value="3">
@@ -64,6 +67,13 @@
 					{#each $store as card (card.id)}
 						<span>ID: {card.id} || VALUE: {card.value} || STATUS: {card.status}</span><br />
 					{/each}
+				</Accordion.Content>
+			</Accordion.Item>
+			<Accordion.Item value="4">
+				<Accordion.Trigger>In-Play</Accordion.Trigger>
+				<Accordion.Content>
+					{inPlay[1] ? inPlay[1].id : 'Null'}<br />
+					{inPlay[2] ? inPlay[2].id : 'Null'}<br />
 				</Accordion.Content>
 			</Accordion.Item>
 		</Accordion.Root>

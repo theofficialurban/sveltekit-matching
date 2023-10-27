@@ -52,6 +52,7 @@ export default interface BicycleCard {
 	Events: {
 		faceup: BicycleCard['CardLikeData'];
 		facedown: BicycleCard['CardLikeData'];
+		complete: BicycleCard['CardLikeData'];
 	};
 	Options: {
 		faceImages?: string[];

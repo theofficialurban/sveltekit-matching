@@ -5,7 +5,8 @@
 	import { flip } from 'svelte/animate';
 	import type CardGame from '$lib/classes/CardGame';
 	import { createEventDispatcher } from 'svelte';
-	const dispatch = createEventDispatcher();
+	import type { IN_PLAY_OBJECT } from '$lib/classes/InPlay';
+	const dispatch = createEventDispatcher<{ match: IN_PLAY_OBJECT; nomatch: IN_PLAY_OBJECT }>();
 	export let game: CardGame;
 	const { deck, inPlay } = game;
 	const [send, recieve] = crossfade({ duration: 1500, easing: quintOut });

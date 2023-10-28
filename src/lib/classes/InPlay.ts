@@ -2,7 +2,7 @@ import { get, writable, type Writable } from 'svelte/store';
 import type BicycleCardData from './Card';
 import type CardGame from './CardGame';
 
-type IN_PLAY_OBJECT = { one: BicycleCardData | null; two: BicycleCardData | null };
+export type IN_PLAY_OBJECT = { one: BicycleCardData | null; two: BicycleCardData | null };
 
 export default class InPlay {
 	store: Writable<IN_PLAY_OBJECT> = writable<IN_PLAY_OBJECT>({ one: null, two: null });

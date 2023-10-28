@@ -1,5 +1,5 @@
-import type BicycleCardData from '$lib/classes/Card';
 import type CardGame from '$lib/classes/CardGame';
+import type { IN_PLAY_OBJECT } from '$lib/classes/InPlay';
 import type { Rule } from '$lib/classes/Rule';
 import type { Tweened } from 'svelte/motion';
 import type { Writable } from 'svelte/store';
@@ -12,7 +12,6 @@ type _Actions = {
 	check_cards: null;
 	stop: null;
 };
-type IN_PLAY_OBJECT = { 1: BicycleCardData | null; 2: BicycleCardData | null };
 type GAME_STORE_OBJECT = {
 	_score: number;
 	_timer: Tweened<number>;

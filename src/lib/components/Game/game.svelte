@@ -8,7 +8,6 @@
 	import CardControls from '../Dashboard/card-controls.svelte';
 	import { onDestroy } from 'svelte';
 	import GameTimer from '$lib/classes/GameTimer';
-	import InPlay from '$lib/classes/InPlay';
 	const game = new CardGame({
 		pair: true,
 		count: 5,
@@ -16,7 +15,8 @@
 		cover: Cover,
 		adminControls: true
 	});
-	const { adminControls, reset } = game;
+
+	const { adminControls, reset, score } = game;
 	const timer = new GameTimer(game);
 	const { gameTimer } = timer;
 
@@ -25,9 +25,27 @@
 	});
 </script>
 
-<div>{$gameTimer}</div>
+<div>{Math.ceil($gameTimer)}</div>
+
+<div>{$score}</div>
 {#if adminControls}
 	<CardControls {timer} {game} />
 {/if}
 
-<CardHand on:match={() => console.log('Yay Match')} {game} />
+<CardHand
+	on:match={({ detail }) => {
+		const { one, two } = detail;
+		if (one && two) {
+			$score += 2;
+			one.remove();
+			two.remove();
+			game.eventLogger.logEvent('match', {
+				_currentTime: Math.ceil($gameTimer),
+				_cards: detail,
+				_cardsRemaining: game.deck.getDeckCounts().total,
+				_score: $score
+			});
+		}
+	}}
+	{game}
+/>

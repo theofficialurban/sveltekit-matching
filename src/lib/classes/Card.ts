@@ -87,13 +87,10 @@ export default class BicycleCardData {
 			return d;
 		});
 	};
-	cashScore = () => {
+	remove = () => {
 		// First unplay card
 		this.unPlayCard();
 		this.#_removeCard();
-		console.log('Card successfully cashed.');
-
-		// Needs to give points then remove the card.
 	};
 	makePair = () => {
 		const pairId = parseInt(uniqueId());

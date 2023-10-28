@@ -6,7 +6,7 @@ import { isUndefined } from 'lodash-es';
 import BicycleCardDeck from './Deck';
 import type { Rule } from './Rule';
 import type ICardGame from '$lib/types/CardGame';
-import { get, writable } from 'svelte/store';
+import { writable, type Writable } from 'svelte/store';
 import EventLogger from './EventLog';
 import GameHandler from './GameHandler';
 import InPlay from './InPlay';
@@ -23,7 +23,7 @@ type Options = Partial<ICardGame['OPTIONS'] & BicycleCard['Options']>;
  */
 export default class CardGame {
 	deck: BicycleCardDeck;
-	gameStore: ICardGame['GAME_STORE']['STORE'] = writable<ICardGame['GAME_STORE']['OBJECT']>();
+	score: Writable<number> = writable<number>(0);
 	eventLogger: EventLogger = new EventLogger(this);
 	handler: GameHandler = new GameHandler(this);
 	#_rules: Set<Rule> = new Set<Rule>();
@@ -50,16 +50,16 @@ export default class CardGame {
 		// Begin listening to the Subject.
 	}
 
-	makeSubjectData = (cardsOverwrite: ICardGame['GAME_STORE']['IN_PLAY_OBJECT'] | null = null) => {
-		const store = this.currentStore;
-		const data: ICardGame['GAMESUBJECT']['data'] = {
-			_cards: cardsOverwrite ? cardsOverwrite : store._in_play,
-			_cardsRemaining: this.deck.getDeckCounts().total,
-			_currentTime: get(store._timer),
-			_score: store._score
-		};
-		return data;
-	};
+	// makeSubjectData = (cardsOverwrite: ICardGame['GAME_STORE']['IN_PLAY_OBJECT'] | null = null) => {
+	// 	const store = this.currentStore;
+	// 	const data: ICardGame['GAMESUBJECT']['data'] = {
+	// 		_cards: cardsOverwrite ? cardsOverwrite : store._in_play,
+	// 		_cardsRemaining: this.deck.getDeckCounts().total,
+	// 		_currentTime: get(store._timer),
+	// 		_score: store._score
+	// 	};
+	// 	return data;
+	// };
 	/**
 	 * @private #_processSubject
 	 * Processes logic from the listener
@@ -103,37 +103,30 @@ export default class CardGame {
 	 * @returns A promise resolved with the in-play object
 	 * or rejected if no successful match.
 	 */
-	checkMatch = (
-		data: ICardGame['GAMESUBJECT']['data']
-	): Promise<ICardGame['GAME_STORE']['IN_PLAY_OBJECT']> => {
-		return new Promise<ICardGame['GAME_STORE']['IN_PLAY_OBJECT']>((resolve, reject) => {
-			if (isUndefined(data)) return reject();
-			const { _cards } = data;
-			const one = _cards[1];
-			const two = _cards[2];
-			if (one && two) {
-				// Action function . resets cards and issues score.
-				const fn = () => {
-					Promise.all([this.deck.setStatus('FACEDOWN', one.id, two.id)]);
-					if (one.value === two.value) {
-						console.log('Successful Match!');
-						return resolve(_cards);
-					} else {
-						return reject('Un-Successful Match!');
-					}
-				};
+	// checkMatch = (
+	// 	data: ICardGame['GAMESUBJECT']['data']
+	// ): Promise<ICardGame['GAME_STORE']['IN_PLAY_OBJECT']> => {
+	// 	return new Promise<ICardGame['GAME_STORE']['IN_PLAY_OBJECT']>((resolve, reject) => {
+	// 		if (isUndefined(data)) return reject();
+	// 		const { _cards } = data;
+	// 		const one = _cards[1];
+	// 		const two = _cards[2];
+	// 		if (one && two) {
+	// 			// Action function . resets cards and issues score.
+	// 			const fn = () => {
+	// 				Promise.all([this.deck.setStatus('FACEDOWN', one.id, two.id)]);
+	// 				if (one.value === two.value) {
+	// 					console.log('Successful Match!');
+	// 					return resolve(_cards);
+	// 				} else {
+	// 					return reject('Un-Successful Match!');
+	// 				}
+	// 			};
 
-				setTimeout(fn, 2000);
-			}
-		});
-	};
-
-	private get currentStore() {
-		return get(this.gameStore);
-	}
-	get gameStatus() {
-		return this.currentStore._active;
-	}
+	// 			setTimeout(fn, 2000);
+	// 		}
+	// 	});
+	// };
 
 	/**
 	 * @public reset()
@@ -153,6 +146,7 @@ export default class CardGame {
 			this.#_rules.clear();
 			// Reset Event Log
 			this.eventLogger.reset();
+			this.score.set(0);
 
 			resolve();
 		});

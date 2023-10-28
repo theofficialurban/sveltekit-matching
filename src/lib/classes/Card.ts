@@ -8,7 +8,7 @@ export default class BicycleCardData {
 	readonly #_id: number;
 	readonly #_value: number;
 	readonly #_image: string;
-	#_in_play: 1 | 2 | null = null;
+	#_in_play: 'one' | 'two' | null = null;
 	#_deck: BicycleCardDeck;
 	store: BicycleCard['Store'];
 
@@ -34,15 +34,16 @@ export default class BicycleCardData {
 	}
 	unPlayCard = () => {
 		if (this.#_in_play) {
-			this.game.clearPlay(this.#_in_play);
-			return true;
+			this.#_in_play = null;
+
+			return this.game.inPlay.clearPlay(this.#_in_play);
 		}
 		return false;
 	};
 	playCard = () => {
-		return new Promise<1 | 2>((resolve, reject) => {
+		return new Promise<'one' | 'two'>((resolve, reject) => {
 			// Will return the slot or null if no play
-			this.game
+			this.game.inPlay
 				.makePlay(this)
 				.then((slot) => {
 					this.#_in_play = slot;
@@ -89,7 +90,6 @@ export default class BicycleCardData {
 	cashScore = () => {
 		// First unplay card
 		this.unPlayCard();
-		this.game.giveScore(1);
 		this.#_removeCard();
 		console.log('Card successfully cashed.');
 

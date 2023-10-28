@@ -10,6 +10,7 @@ type _Actions = {
 	match: null;
 	no_match: null;
 	check_cards: null;
+	stop: null;
 };
 type IN_PLAY_OBJECT = { 1: BicycleCardData | null; 2: BicycleCardData | null };
 type GAME_STORE_OBJECT = {
@@ -36,7 +37,7 @@ export default interface ICardGame {
 		timer: { time: number; duration: number; delay?: number; easing?: EasingFunction };
 	};
 	ACTION_KEY: keyof _Actions;
-
+	SUBJECT_DATA: SubjectData;
 	GAME_STORE: {
 		OBJECT: GAME_STORE_OBJECT;
 		STORE: Writable<GAME_STORE_OBJECT>;

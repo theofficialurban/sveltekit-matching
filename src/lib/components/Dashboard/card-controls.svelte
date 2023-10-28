@@ -4,23 +4,20 @@
 	import type BicycleCard from '$lib/types/BicycleCard';
 	import Button from '../ui/button/button.svelte';
 	import type ICardGame from '$lib/types/CardGame';
+	import type GameTimer from '$lib/classes/GameTimer';
 	//export let deck: BicycleCard['Deck'];
 	export let game: ICardGame['GAME'];
-
+	export let timer: GameTimer;
 	const {
 		deck: { setStatus, shuffle, getDeck },
-		actions,
-		play$,
-		gameStore,
-		startTimer,
-		stopTimer,
-		resetTimer,
-		setTimer,
-		eventLog,
+		handler: { play$, actions },
+		inPlay: { count: inPlayCount, store: inPlayStore },
+
+		eventLogger: { store: eventStore },
 		reset
 	} = game;
-	let inPlay = $gameStore._in_play;
-	$: timer = $gameStore._timer;
+	const { start, stop, reset: gtReset } = timer;
+
 	let tseconds: string;
 	let cardIdControl: string = 'null';
 	let statusSelection: BicycleCard['Status'];
@@ -41,7 +38,7 @@
 		<Button>Event Log</Button>
 	</Dialog.Trigger>
 	<Dialog.Content class="overflow-scroll h-[300px] w-[500px]">
-		{#each $eventLog as event}
+		{#each $eventStore as event}
 			<table class="p-4">
 				<thead>
 					<tr>
@@ -108,26 +105,23 @@
 				</Accordion.Content>
 			</Accordion.Item>
 			<Accordion.Item value="4">
-				<Accordion.Trigger>In-Play</Accordion.Trigger>
+				<Accordion.Trigger>In-Play - {inPlayCount()}</Accordion.Trigger>
 				<Accordion.Content>
-					{inPlay[1] ? inPlay[1].id : 'Null'}<br />
-					{inPlay[2] ? inPlay[2].id : 'Null'}<br />
+					{$inPlayStore.one ? $inPlayStore.one.id : 'Null'}<br />
+					{$inPlayStore.two ? $inPlayStore.two.id : 'Null'}<br />
 				</Accordion.Content>
 			</Accordion.Item>
 			<Accordion.Item value="5">
 				<Accordion.Trigger>Timer</Accordion.Trigger>
 				<Accordion.Content class="grid grid-flow-row">
-					<div class="text-3xl text-center p-4 font-extrabold">
-						<span>{Math.ceil($timer)}</span>
-					</div>
 					<div>
-						<Button on:click={() => startTimer()}>Start Timer</Button>
-						<Button on:click={() => stopTimer()}>Stop Timer</Button>
-						<Button on:click={() => resetTimer()}>Reset Timer</Button>
+						<Button on:click={() => start()}>Start Timer</Button>
+						<Button on:click={() => stop()}>Stop Timer</Button>
+						<Button on:click={() => gtReset()}>Reset Timer</Button>
 					</div>
 					<div>
 						<input class="text-black" bind:value={tseconds} />
-						<button on:click={() => setTimer(parseInt(tseconds))}>Set Timer</button>
+						<button on:click={() => (timer.timer = parseInt(tseconds))}>Set Timer</button>
 					</div>
 				</Accordion.Content>
 			</Accordion.Item>

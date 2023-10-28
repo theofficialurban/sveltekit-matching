@@ -7,7 +7,7 @@
 	import { quintOut } from 'svelte/easing';
 	import { flip } from 'svelte/animate';
 	const game = Bicycle.Game;
-	const { deck, reset, adminControls, play$, actions } = game;
+	const { deck, reset, adminControls, play$, gameStore } = game;
 	const [send, recieve] = crossfade({ duration: 1500, easing: quintOut });
 
 	onDestroy(() => {
@@ -19,7 +19,7 @@
 {#if adminControls}
 	<CardControls {game} />
 {/if}
-
+{$gameStore._score}
 <div class="w-full container grid grid-cols-5">
 	{#each $store as { store, flip: flipCard, id, playCard, unPlayCard } (id)}
 		<div
@@ -29,20 +29,19 @@
 		>
 			<Bicycle.Card
 				on:faceup={(e) => {
-					if (!playCard()) return e.preventDefault();
+					if (game.inPlayCount === 2) return e.preventDefault();
+
+					playCard()
+						.then((slot) => {
+							console.log('Card played in slot', slot);
+						})
+						.catch(() => console.error('Could not play card'));
 				}}
 				on:facedown={(e) => {
 					if (!unPlayCard()) return e.preventDefault();
 				}}
 				on:click={() => {
-					if (game.inPlayCount === 2) {
-						game
-							.checkMatch()
-							.then((cards) => {})
-							.catch((e) => console.error(e));
-					} else {
-						flipCard();
-					}
+					if (game.inPlayCount < 2) return flipCard();
 				}}
 				{game}
 				{store}

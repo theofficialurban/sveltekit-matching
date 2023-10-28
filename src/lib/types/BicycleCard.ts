@@ -58,5 +58,6 @@ export default interface BicycleCard {
 		faceImages?: string[];
 		cover?: string;
 		pair?: boolean;
+		count?: number;
 	};
 }

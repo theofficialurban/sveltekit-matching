@@ -1,8 +1,9 @@
 import Cover from '$lib/assets/card-cover.png';
 import { get, writable } from 'svelte/store';
 import type BicycleCard from '$lib/types/BicycleCard';
-import { uniqueId } from 'lodash-es';
+import { uniqueId, remove } from 'lodash-es';
 import type BicycleCardDeck from './Deck';
+
 export default class BicycleCardData {
 	readonly #_id: number;
 	readonly #_value: number;
@@ -39,15 +40,19 @@ export default class BicycleCardData {
 		return false;
 	};
 	playCard = () => {
-		const play = this.game.makePlay(this);
-		if (play) {
-			this.#_in_play = play;
-			if (play === 2) {
-				this.game.play$({ status: this.game.actions.check_cards });
-			}
-			return true;
-		}
-		return false;
+		return new Promise<1 | 2>((resolve, reject) => {
+			// Will return the slot or null if no play
+			this.game
+				.makePlay(this)
+				.then((slot) => {
+					this.#_in_play = slot;
+					resolve(slot);
+				})
+				.catch(() => {
+					console.error('Could not play card');
+					reject();
+				});
+		});
 	};
 	private get game() {
 		return this.#_deck.game;
@@ -72,6 +77,23 @@ export default class BicycleCardData {
 			});
 			resolve();
 		});
+	};
+	#_removeCard = () => {
+		this.#_deck.getDeck().update((d) => {
+			remove(d, (c) => {
+				return c === this;
+			});
+			return d;
+		});
+	};
+	cashScore = () => {
+		// First unplay card
+		this.unPlayCard();
+		this.game.giveScore(1);
+		this.#_removeCard();
+		console.log('Card successfully cashed.');
+
+		// Needs to give points then remove the card.
 	};
 	makePair = () => {
 		const pairId = parseInt(uniqueId());

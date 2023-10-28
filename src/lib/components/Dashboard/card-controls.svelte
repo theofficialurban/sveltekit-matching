@@ -11,9 +11,17 @@
 		deck: { setStatus, shuffle, getDeck },
 		actions,
 		play$,
-		gameStore
+		gameStore,
+		startTimer,
+		stopTimer,
+		resetTimer,
+		setTimer,
+		eventLog,
+		reset
 	} = game;
 	let inPlay = $gameStore._in_play;
+	$: timer = $gameStore._timer;
+	let tseconds: string;
 	let cardIdControl: string = 'null';
 	let statusSelection: BicycleCard['Status'];
 	const store = getDeck();
@@ -30,12 +38,42 @@
 
 <Dialog.Root>
 	<Dialog.Trigger>
+		<Button>Event Log</Button>
+	</Dialog.Trigger>
+	<Dialog.Content class="overflow-scroll h-[300px] w-[500px]">
+		{#each $eventLog as event}
+			<table class="p-4">
+				<thead>
+					<tr>
+						<th>⏳ Timestamp</th>
+						<th>Event</th>
+						<th>Score</th>
+						<th>Cards Left</th>
+						<th>Seconds Left</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr class="text-center">
+						<td class="text-teal-400 font-bold">{event.time}</td>
+						<td class="text-red-700 font-bold">{event.type}</td>
+						<td class="text-amber-500 font-bold">{event.data._score}</td>
+						<td class="text-purple-600 font-bold">{event.data._cardsRemaining}</td>
+						<td class="text-blue-600 font-bold">{event.data._currentTime}</td>
+					</tr>
+				</tbody>
+			</table>
+		{/each}
+	</Dialog.Content>
+</Dialog.Root>
+<Dialog.Root>
+	<Dialog.Trigger>
 		<Button>Card Controls</Button>
 	</Dialog.Trigger>
 	<Dialog.Content>
 		<Button on:click={() => setStatus('FACEUP')}>Reveal All</Button>
 		<Button on:click={() => setStatus('FACEDOWN')}>Cover All</Button>
 		<Button on:click={() => shuffle(5)}>Shuffle</Button>
+		<Button on:click={() => reset()}>Reset All</Button>
 
 		<Accordion.Root>
 			<Accordion.Item value="1">
@@ -74,6 +112,23 @@
 				<Accordion.Content>
 					{inPlay[1] ? inPlay[1].id : 'Null'}<br />
 					{inPlay[2] ? inPlay[2].id : 'Null'}<br />
+				</Accordion.Content>
+			</Accordion.Item>
+			<Accordion.Item value="5">
+				<Accordion.Trigger>Timer</Accordion.Trigger>
+				<Accordion.Content class="grid grid-flow-row">
+					<div class="text-3xl text-center p-4 font-extrabold">
+						<span>{Math.ceil($timer)}</span>
+					</div>
+					<div>
+						<Button on:click={() => startTimer()}>Start Timer</Button>
+						<Button on:click={() => stopTimer()}>Stop Timer</Button>
+						<Button on:click={() => resetTimer()}>Reset Timer</Button>
+					</div>
+					<div>
+						<input class="text-black" bind:value={tseconds} />
+						<button on:click={() => setTimer(parseInt(tseconds))}>Set Timer</button>
+					</div>
 				</Accordion.Content>
 			</Accordion.Item>
 		</Accordion.Root>

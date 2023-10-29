@@ -1,8 +1,9 @@
-import { includes } from 'lodash-es';
+import { includes, isUndefined } from 'lodash-es';
 import { Subject, Subscription } from 'rxjs';
 import type CardGame from './CardGame';
 import { get } from 'svelte/store';
 import type IGameHandler from '$lib/types/GameHandler';
+import { Status } from './CardGame';
 
 /**
  * @constant gameActions
@@ -17,21 +18,73 @@ export const gameActions: Record<IGameHandler['Action'], symbol> = {
 	match: Symbol('GAME_MATCH'),
 	no_match: Symbol('GAME_NO_MATCH'),
 	check_cards: Symbol('GAME_CHECK_CARDS'),
-	stop: Symbol('GAME_STOP')
+	stop: Symbol('GAME_STOP'),
+	error: Symbol('GAME_ERROR')
 };
+/**
+ * @interface CGameHandler
+ * Class implementation interface for GameHandler
+ */
 interface CGameHandler {
 	play$: (status: IGameHandler['Action']) => boolean;
 	unsubscribe: () => boolean;
 }
-
+const handleEnd: HandlerFunction = (game: CardGame, data: IGameHandler['SubjectData']) => {
+	return new Promise<void>((resolve) => {
+		console.log(data);
+		game.gameStatus = Status.COMPLETE;
+		resolve();
+	});
+};
+const handleStart: HandlerFunction = (game: CardGame, data: IGameHandler['SubjectData']) => {
+	return new Promise<void>((resolve) => {
+		setTimeout(() => game.deck.shuffle(5), 500);
+		game.gameStatus = Status.STARTED;
+		console.log(data);
+		resolve();
+	});
+};
+const handleMatch: HandlerFunction = () => {
+	return new Promise<void>((resolve) => {
+		console.log('Match');
+		resolve();
+	});
+};
+const handleStop: HandlerFunction = (g: CardGame) => {
+	return new Promise<void>((resolve) => {
+		g.gameStatus = Status.STOPPED;
+		console.log('Stop');
+		resolve();
+	});
+};
+const handleError: HandlerFunction = () => {
+	return new Promise<void>((resolve) => {
+		console.error('Game Error');
+		resolve();
+	});
+};
+type HandlerFunction = (g: CardGame, d: IGameHandler['SubjectData']) => Promise<void>;
+/**
+ * @class GameHandler
+ * @implements CGameHandler
+ * A utility class to handle game events similarly to the way normal
+ * component events are handled. Using RxJS subjects.
+ */
 export default class GameHandler implements CGameHandler {
 	#_subject: Subject<IGameHandler['GameSubject']> = new Subject<IGameHandler['GameSubject']>();
 	#_subscription: Subscription | null = null;
 	#_game: CardGame;
+	#_handlers: Map<symbol, HandlerFunction> = new Map<symbol, HandlerFunction>();
 	constructor(_game: CardGame) {
 		this.#_game = _game;
+		this.addHandler('start', handleStart);
+		this.addHandler('stop', handleStop);
+		this.addHandler('match', handleMatch);
+		this.addHandler('error', handleError);
+		this.addHandler('end', handleEnd);
 		this.#_listen();
 	}
+
 	#_listen = () => {
 		this.#_subscription = this.#_subject.subscribe((s: IGameHandler['GameSubject']) => {
 			return this.#_processSubject(s);
@@ -43,20 +96,24 @@ export default class GameHandler implements CGameHandler {
 	 * Processes logic from the listener
 	 * @param {GameSubject}
 	 */
-	#_processSubject({ status }: IGameHandler['GameSubject']) {
+	#_processSubject({ status, data }: IGameHandler['GameSubject']) {
+		const cb = this.#_handlers.get(status);
 		if (!includes(gameActions, status)) return;
-		console.log(status);
+		if (isUndefined(cb)) {
+			const e = new Error('Unknown Game Event');
+
+			this.#_game.eventLogger.logError(e, data);
+			throw e;
+		}
+		cb(this.#_game, data).catch((e) => {
+			this.#_game.eventLogger.logError(e, data);
+			throw new Error(e);
+		});
 	}
-	// makeSubjectData = (cardsOverwrite: ICardGame['GAME_STORE']['IN_PLAY_OBJECT'] | null = null) => {
-	// 	const store = this.currentStore;
-	// 	const data: ICardGame['GAMESUBJECT']['data'] = {
-	// 		_cards: cardsOverwrite ? cardsOverwrite : store._in_play,
-	// 		_cardsRemaining: this.deck.getDeckCounts().total,
-	// 		_currentTime: get(store._timer),
-	// 		_score: store._score
-	// 	};
-	// 	return data;
-	// };
+
+	addHandler = (type: IGameHandler['Action'], fn: HandlerFunction) => {
+		return this.#_handlers.set(gameActions[type], fn);
+	};
 	unsubscribe = () => {
 		if (!this.#_subscription) return false;
 		this.#_subscription.unsubscribe();

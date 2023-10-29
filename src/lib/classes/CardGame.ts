@@ -1,37 +1,69 @@
 import Cover from '$lib/assets/card-cover.png';
 import NotPictured from '$lib/assets/not-pictured.png';
 import type BicycleCard from '$lib/types/BicycleCard';
-
 import { isUndefined } from 'lodash-es';
 import BicycleCardDeck from './Deck';
-import type { Rule } from './Rule';
 import type ICardGame from '$lib/types/CardGame';
 import { writable, type Writable } from 'svelte/store';
 import EventLogger from './EventLog';
 import GameHandler from './GameHandler';
 import InPlay from './InPlay';
 import GameTimer from './GameTimer';
+export enum Status {
+	STOPPED,
+	STARTED,
+	COMPLETE
+}
 // Merge the options for all sub-classes to allow all options in this constructor.
 type Options = Partial<ICardGame['OPTIONS'] & BicycleCard['Options']>;
 
-type GameStore = { score: number; status: boolean };
+type GameStore = { score: number; status: Status };
 /**
  * @class CardGame
- * @classdesc This is the top level class to manage the entirety of the game.
- * @property @public deck {BicycleCardDeck}
- * @property @private #_rules {Set<Rule>} - Game Rules
- * @property @subject @public play$ - RxJS Subject for game logic
- * @property @private #_listener - RxJS subscription.
+ * The helper class which brings all services together
  */
 export default class CardGame {
+	/**
+	 * @public @instance
+	 * deck - The deck / hand of cards
+	 */
 	deck: BicycleCardDeck;
-	game: Writable<GameStore> = writable<GameStore>({ score: 0, status: false });
+	/**
+	 * @public @store
+	 * game - Store for the score and game status
+	 */
+	game: Writable<GameStore> = writable<GameStore>({ score: 0, status: Status.STOPPED });
+	/**
+	 * @public @logger
+	 * eventLogger - Logs all game events
+	 */
 	eventLogger: EventLogger = new EventLogger(this);
+	/**
+	 * @public @handler
+	 * GameHandler - Handles all game events.
+	 */
 	handler: GameHandler = new GameHandler(this);
+	/**
+	 * @public
+	 * timer GameTimer
+	 */
 	timer: GameTimer = new GameTimer(this, { time: 30 });
-	#_rules: Set<Rule> = new Set<Rule>();
+	/**
+	 * @public
+	 * In Play - handles the card currently being played.
+	 */
 	inPlay: InPlay = new InPlay(this);
+	/**
+	 * @readonly @public adminControls - T/F for admin controls
+	 */
 	readonly adminControls: boolean = false;
+	/**
+	 * @private #_options
+	 * count - Card Count
+	 * pair - Generate each card a pair
+	 * faceImages - Array of random face images
+	 * cover - Cover of the card
+	 */
 	#_options = {
 		count: 1,
 		pair: false,
@@ -50,48 +82,15 @@ export default class CardGame {
 		this.deck = new BicycleCardDeck(this);
 		// Add some cards to the deck.
 		this.deck.createCards(this.#_options.count, { pair: this.#_options.pair });
-		// Begin listening to the Subject.
 	}
-
 	/**
-	 * @private #_processSubject
-	 * Processes logic from the listener
-	 * @param {ICardGame['GAMESUBJECT']}
-	 */
-	// #_processSubject({ status, data }: ICardGame['GAMESUBJECT']) {
-	// 	if (!includes(gameActions, status)) return;
-	// 	if (status === this.actions.match) {
-	// 		const one = data?._cards[1];
-	// 		const two = data?._cards[2];
-	// 		if (one && two) {
-	// 			one.cashScore();
-	// 			two.cashScore();
-	// 			this.eventLogger.logEvent('match', this.makeSubjectData({ 1: one, 2: two }));
-	// 		}
-	// 	}
-	// 	if (status === this.actions.no_match) {
-	// 		this.eventLogger.logEvent('no_match', this.makeSubjectData());
-	// 	}
-	// 	if (status === this.actions.end) console.log('Game Over!!!!', data);
-	// 	if (status === this.actions.check_cards) {
-	// 		this.checkMatch(data)
-	// 			.then((cards) => {
-	// 				// Give points etc
-	// 				if (cards[1] && cards[2]) {
-	// 					// Trigger a match call
-	// 					this.play$({ status: this.actions.match, data: this.makeSubjectData(cards) });
-	// 				}
-	// 			})
-	// 			.catch((e) => {
-	// 				this.play$({ status: this.actions.no_match, data: this.makeSubjectData() });
-	// 				console.error(e);
-	// 			});
-	// 	}
-	// }
-
-	/**
-	 * @public reset()
-	 * Resets the game, wipes the deck and unsubscribes from listener.
+	 * @public @method reset()
+	 * Resets the following
+	 * 1) Resets the deck and creates a new hand
+	 * 2) Clears the "InPlay" set
+	 * 3) Clears the event logger
+	 * 4) Resets the score and game status
+	 * 5) Resets the timer
 	 * @returns Promise<void>
 	 */
 	reset = (): Promise<void> => {
@@ -103,16 +102,18 @@ export default class CardGame {
 			this.deck.createCards(count, { pair, cover, faceImages });
 			// Reset In Play
 			this.inPlay.clearPlay();
-			// Reset Rules
-			this.#_rules.clear();
+
 			// Reset Event Log
 			this.eventLogger.reset();
-			this.game.set({ score: 0, status: false });
+			this.game.set({ score: 0, status: Status.STOPPED });
 			this.timer.reset();
 			resolve();
 		});
 	};
-	set gameStatus(s: boolean) {
+	/**
+	 * @public Sets Game Status T/F
+	 */
+	set gameStatus(s: Status) {
 		this.game.update((g) => {
 			g.status = s;
 			return g;

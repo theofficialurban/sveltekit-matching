@@ -3,7 +3,7 @@ import { get, writable } from 'svelte/store';
 import type BicycleCard from '$lib/types/BicycleCard';
 import { uniqueId, remove } from 'lodash-es';
 import type BicycleCardDeck from './Deck';
-
+import type CardGame from './CardGame';
 export default class BicycleCardData {
 	readonly #_id: number;
 	readonly #_value: number;
@@ -11,8 +11,9 @@ export default class BicycleCardData {
 	#_in_play: 'one' | 'two' | null = null;
 	#_deck: BicycleCardDeck;
 	store: BicycleCard['Store'];
-
-	constructor(_deck: BicycleCardDeck, data: BicycleCard['State']) {
+	#_game: CardGame;
+	constructor(_game: CardGame, _deck: BicycleCardDeck, data: BicycleCard['State']) {
+		this.#_game = _game;
 		this.#_deck = _deck;
 		const { _id, _value, _image } = data;
 		this.#_id = _id;
@@ -43,7 +44,7 @@ export default class BicycleCardData {
 	playCard = () => {
 		return new Promise<'one' | 'two'>((resolve, reject) => {
 			// Will return the slot or null if no play
-			this.game.inPlay
+			this.#_game.inPlay
 				.makePlay(this)
 				.then((slot) => {
 					this.#_in_play = slot;
@@ -56,7 +57,7 @@ export default class BicycleCardData {
 		});
 	};
 	private get game() {
-		return this.#_deck.game;
+		return this.#_game;
 	}
 	flip = () => {
 		return this.store.update((c) => {
@@ -94,7 +95,7 @@ export default class BicycleCardData {
 	};
 	makePair = () => {
 		const pairId = parseInt(uniqueId());
-		new BicycleCardData(this.#_deck, {
+		new BicycleCardData(this.#_game, this.#_deck, {
 			_id: pairId,
 			_value: this.#_value,
 			_status: 'FACEDOWN',

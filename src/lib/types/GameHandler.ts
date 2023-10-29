@@ -15,6 +15,7 @@ type HandlerActions = {
 	no_match: null;
 	check_cards: null;
 	stop: null;
+	error: null;
 };
 export default interface IGameHandler {
 	GameSubject: GameSubject;

@@ -40,9 +40,9 @@ export default class GameTimer implements IGameTimer {
 	}
 	start = (): void => {
 		const { play$ } = this.#_game.handler;
-		this.#_game.gameStatus = true;
+
 		play$('start');
-		setTimeout(() => this.#_game.deck.shuffle(5), 500);
+
 		this.#_timer
 			.set(0, { duration: this.#_duration, delay: this.#_delay, easing: this.#_easing })
 			.then(() => {
@@ -53,7 +53,6 @@ export default class GameTimer implements IGameTimer {
 			});
 	};
 	stop = (): void => {
-		this.#_game.gameStatus = false;
 		const { play$ } = this.#_game.handler;
 		this.#_timer
 			.set(this.current, { duration: 0, delay: 0 })
@@ -65,7 +64,8 @@ export default class GameTimer implements IGameTimer {
 			});
 	};
 	reset = (): void => {
-		this.#_game.gameStatus = false;
+		const { play$ } = this.#_game.handler;
+		play$('stop');
 		this.#_timer.set(this.#_time, { duration: 0 });
 	};
 	get gameTimer() {

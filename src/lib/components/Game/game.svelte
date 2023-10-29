@@ -5,9 +5,8 @@
 	import Face1 from '$lib/assets/card-face.png';
 	import Face2 from '$lib/assets/card2.png';
 	import Cover from '$lib/assets/card-cover.png';
-	import CardControls from '../Dashboard/card-controls.svelte';
 	import { onDestroy } from 'svelte';
-	import GameTimer from '$lib/classes/GameTimer';
+	import GameBanner from './game-banner.svelte';
 	const game = new CardGame({
 		pair: true,
 		count: 5,
@@ -16,35 +15,27 @@
 		adminControls: true
 	});
 
-	const { adminControls, reset, score } = game;
-	const timer = new GameTimer(game);
-	const { gameTimer } = timer;
+	const {
+		reset,
+		game: gs,
+		timer,
+		handler: { play$ }
+	} = game;
 
 	onDestroy(() => {
 		reset();
 	});
 </script>
 
-<div>{Math.ceil($gameTimer)}</div>
-
-<div>{$score}</div>
-{#if adminControls}
-	<CardControls {timer} {game} />
-{/if}
-
+<GameBanner {game} />
 <CardHand
 	on:match={({ detail }) => {
 		const { one, two } = detail;
 		if (one && two) {
-			$score += 2;
+			$gs.score += 2;
 			one.remove();
 			two.remove();
-			game.eventLogger.logEvent('match', {
-				_currentTime: Math.ceil($gameTimer),
-				_cards: detail,
-				_cardsRemaining: game.deck.getDeckCounts().total,
-				_score: $score
-			});
+			play$('match');
 		}
 	}}
 	{game}

@@ -39,29 +39,33 @@ export default class GameTimer implements IGameTimer {
 		return this;
 	}
 	start = (): void => {
-		const { makeSubjectData, play$, actions } = this.#_game;
-
+		const { play$ } = this.#_game.handler;
+		this.#_game.gameStatus = true;
+		play$('start');
+		setTimeout(() => this.#_game.deck.shuffle(5), 500);
 		this.#_timer
 			.set(0, { duration: this.#_duration, delay: this.#_delay, easing: this.#_easing })
 			.then(() => {
-				play$({ status: actions.end, data: makeSubjectData() });
+				play$('end');
 			})
 			.catch((e) => {
 				console.error(e);
 			});
 	};
 	stop = (): void => {
-		const { makeSubjectData, play$, actions } = this.#_game;
+		this.#_game.gameStatus = false;
+		const { play$ } = this.#_game.handler;
 		this.#_timer
 			.set(this.current, { duration: 0, delay: 0 })
 			.then(() => {
-				play$({ status: actions.stop, data: makeSubjectData() });
+				play$('stop');
 			})
 			.catch((e) => {
 				console.error(e);
 			});
 	};
 	reset = (): void => {
+		this.#_game.gameStatus = false;
 		this.#_timer.set(this.#_time, { duration: 0 });
 	};
 	get gameTimer() {

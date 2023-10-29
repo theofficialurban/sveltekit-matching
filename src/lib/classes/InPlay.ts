@@ -50,15 +50,10 @@ export default class InPlay {
 				});
 				return resolve('one');
 			} else if (!two) {
-				const {
-					handler: { actions, play$ }
-				} = this.#_game;
 				this.store.update((s) => {
 					return { ...s, two: card };
 				});
-				play$({
-					status: actions.check_cards
-				});
+
 				return resolve('two');
 			}
 			return reject();

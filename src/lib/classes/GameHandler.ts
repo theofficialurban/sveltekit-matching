@@ -1,12 +1,9 @@
 import { includes } from 'lodash-es';
 import { Subject, Subscription } from 'rxjs';
 import type CardGame from './CardGame';
-interface SubjectData {
-	_currentTime: number;
-	_score: number;
-	_cardsRemaining: number;
-}
-type GameSubject = { status: symbol; data?: SubjectData };
+import { get } from 'svelte/store';
+import type IGameHandler from '$lib/types/GameHandler';
+
 /**
  * @constant gameActions
  * The symbols for the game actions.
@@ -14,7 +11,7 @@ type GameSubject = { status: symbol; data?: SubjectData };
  * this class will serve to process each of these symbolic actions internally.
  * i.e when a match is made, the subject will fire the GAME_MATCH symbol and process the logic.
  */
-export const gameActions = {
+export const gameActions: Record<IGameHandler['Action'], symbol> = {
 	start: Symbol('GAME_START'),
 	end: Symbol('GAME_END'),
 	match: Symbol('GAME_MATCH'),
@@ -22,13 +19,13 @@ export const gameActions = {
 	check_cards: Symbol('GAME_CHECK_CARDS'),
 	stop: Symbol('GAME_STOP')
 };
-interface IGameHandler {
-	play$: (next: GameSubject) => boolean;
+interface CGameHandler {
+	play$: (status: IGameHandler['Action']) => boolean;
 	unsubscribe: () => boolean;
 }
 
-export default class GameHandler implements IGameHandler {
-	#_subject: Subject<GameSubject> = new Subject<GameSubject>();
+export default class GameHandler implements CGameHandler {
+	#_subject: Subject<IGameHandler['GameSubject']> = new Subject<IGameHandler['GameSubject']>();
 	#_subscription: Subscription | null = null;
 	#_game: CardGame;
 	constructor(_game: CardGame) {
@@ -36,7 +33,7 @@ export default class GameHandler implements IGameHandler {
 		this.#_listen();
 	}
 	#_listen = () => {
-		this.#_subscription = this.#_subject.subscribe((s: GameSubject) => {
+		this.#_subscription = this.#_subject.subscribe((s: IGameHandler['GameSubject']) => {
 			return this.#_processSubject(s);
 		});
 		this.#_subscription.add(() => console.log('Subject Teardown'));
@@ -46,7 +43,7 @@ export default class GameHandler implements IGameHandler {
 	 * Processes logic from the listener
 	 * @param {GameSubject}
 	 */
-	#_processSubject({ status }: GameSubject) {
+	#_processSubject({ status }: IGameHandler['GameSubject']) {
 		if (!includes(gameActions, status)) return;
 		console.log(status);
 	}
@@ -66,9 +63,25 @@ export default class GameHandler implements IGameHandler {
 		this.#_subscription = null;
 		return true;
 	};
-	play$ = (s: GameSubject): boolean => {
-		if (!includes(gameActions, s.status)) return false;
-		this.#_subject.next(s);
+	makeData = (): IGameHandler['SubjectData'] => {
+		const currentTime = get(this.#_game.timer.gameTimer);
+		const currentScore = get(this.#_game.game).score;
+		const ipo: IGameHandler['SubjectData'] = {
+			_cardsRemaining: this.#_game.deck.getDeckCounts().total,
+			_currentTime: currentTime,
+			_score: currentScore,
+			_inPlay: this.#_game.inPlay.current
+		};
+
+		return ipo;
+	};
+	play$: CGameHandler['play$'] = (status: IGameHandler['Action']): boolean => {
+		if (!includes(gameActions, this.actions[status])) return false;
+		const subData = this.makeData();
+		const statusSymbol = this.actions[status];
+		this.#_game.eventLogger.logEvent(status, subData);
+		const nextObj: IGameHandler['GameSubject'] = { status: statusSymbol, data: subData };
+		this.#_subject.next(nextObj);
 		return true;
 	};
 	get actions() {

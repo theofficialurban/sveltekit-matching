@@ -10,9 +10,11 @@ import { writable, type Writable } from 'svelte/store';
 import EventLogger from './EventLog';
 import GameHandler from './GameHandler';
 import InPlay from './InPlay';
+import GameTimer from './GameTimer';
 // Merge the options for all sub-classes to allow all options in this constructor.
 type Options = Partial<ICardGame['OPTIONS'] & BicycleCard['Options']>;
 
+type GameStore = { score: number; status: boolean };
 /**
  * @class CardGame
  * @classdesc This is the top level class to manage the entirety of the game.
@@ -23,9 +25,10 @@ type Options = Partial<ICardGame['OPTIONS'] & BicycleCard['Options']>;
  */
 export default class CardGame {
 	deck: BicycleCardDeck;
-	score: Writable<number> = writable<number>(0);
+	game: Writable<GameStore> = writable<GameStore>({ score: 0, status: false });
 	eventLogger: EventLogger = new EventLogger(this);
 	handler: GameHandler = new GameHandler(this);
+	timer: GameTimer = new GameTimer(this, { time: 30 });
 	#_rules: Set<Rule> = new Set<Rule>();
 	inPlay: InPlay = new InPlay(this);
 	readonly adminControls: boolean = false;
@@ -50,16 +53,6 @@ export default class CardGame {
 		// Begin listening to the Subject.
 	}
 
-	// makeSubjectData = (cardsOverwrite: ICardGame['GAME_STORE']['IN_PLAY_OBJECT'] | null = null) => {
-	// 	const store = this.currentStore;
-	// 	const data: ICardGame['GAMESUBJECT']['data'] = {
-	// 		_cards: cardsOverwrite ? cardsOverwrite : store._in_play,
-	// 		_cardsRemaining: this.deck.getDeckCounts().total,
-	// 		_currentTime: get(store._timer),
-	// 		_score: store._score
-	// 	};
-	// 	return data;
-	// };
 	/**
 	 * @private #_processSubject
 	 * Processes logic from the listener
@@ -95,38 +88,6 @@ export default class CardGame {
 	// 			});
 	// 	}
 	// }
-	/**
-	 * @method checkMatch()
-	 * Checks to see if there was a successful match or not. Will reset the cards
-	 * after a period of 2000ms for cosmetics.
-	 * @param data The Data object from the RxJS subject <ICardGame['GAMESUBJECT']>
-	 * @returns A promise resolved with the in-play object
-	 * or rejected if no successful match.
-	 */
-	// checkMatch = (
-	// 	data: ICardGame['GAMESUBJECT']['data']
-	// ): Promise<ICardGame['GAME_STORE']['IN_PLAY_OBJECT']> => {
-	// 	return new Promise<ICardGame['GAME_STORE']['IN_PLAY_OBJECT']>((resolve, reject) => {
-	// 		if (isUndefined(data)) return reject();
-	// 		const { _cards } = data;
-	// 		const one = _cards[1];
-	// 		const two = _cards[2];
-	// 		if (one && two) {
-	// 			// Action function . resets cards and issues score.
-	// 			const fn = () => {
-	// 				Promise.all([this.deck.setStatus('FACEDOWN', one.id, two.id)]);
-	// 				if (one.value === two.value) {
-	// 					console.log('Successful Match!');
-	// 					return resolve(_cards);
-	// 				} else {
-	// 					return reject('Un-Successful Match!');
-	// 				}
-	// 			};
-
-	// 			setTimeout(fn, 2000);
-	// 		}
-	// 	});
-	// };
 
 	/**
 	 * @public reset()
@@ -146,9 +107,15 @@ export default class CardGame {
 			this.#_rules.clear();
 			// Reset Event Log
 			this.eventLogger.reset();
-			this.score.set(0);
-
+			this.game.set({ score: 0, status: false });
+			this.timer.reset();
 			resolve();
 		});
 	};
+	set gameStatus(s: boolean) {
+		this.game.update((g) => {
+			g.status = s;
+			return g;
+		});
+	}
 }

@@ -4,17 +4,17 @@
 	import type BicycleCard from '$lib/types/BicycleCard';
 	import Button from '../ui/button/button.svelte';
 	import type ICardGame from '$lib/types/CardGame';
-	import type GameTimer from '$lib/classes/GameTimer';
-	//export let deck: BicycleCard['Deck'];
+
 	export let game: ICardGame['GAME'];
-	export let timer: GameTimer;
+
 	const {
 		deck: { setStatus, shuffle, getDeck },
 		handler: { play$, actions },
 		inPlay: { count: inPlayCount, store: inPlayStore },
 
 		eventLogger: { store: eventStore },
-		reset
+		reset,
+		timer
 	} = game;
 	const { start, stop, reset: gtReset } = timer;
 
@@ -34,8 +34,8 @@
 </script>
 
 <Dialog.Root>
-	<Dialog.Trigger>
-		<Button>Event Log</Button>
+	<Dialog.Trigger class="py-3">
+		<Button variant="secondary">Logs</Button>
 	</Dialog.Trigger>
 	<Dialog.Content class="overflow-scroll h-[300px] w-[500px]">
 		{#each $eventStore as event}
@@ -64,7 +64,7 @@
 </Dialog.Root>
 <Dialog.Root>
 	<Dialog.Trigger>
-		<Button>Card Controls</Button>
+		<Button variant="secondary">⭐</Button>
 	</Dialog.Trigger>
 	<Dialog.Content>
 		<Button on:click={() => setStatus('FACEUP')}>Reveal All</Button>
@@ -89,11 +89,10 @@
 			<Accordion.Item value="2">
 				<Accordion.Trigger>Game Subject</Accordion.Trigger>
 				<Accordion.Content>
-					<Button on:click={() => play$({ status: actions.start })}>start</Button>
-					<Button on:click={() => play$({ status: actions.end })}>end</Button>
-					<Button on:click={() => play$({ status: actions.match })}>match</Button>
-					<Button on:click={() => play$({ status: actions.no_match })}>no_match</Button>
-					<Button on:click={() => play$({ status: actions.check_cards })}>check_cards</Button>
+					<Button on:click={() => play$('start')}>start</Button>
+					<Button on:click={() => play$('end')}>end</Button>
+					<Button on:click={() => play$('match')}>match</Button>
+					<Button on:click={() => play$('no_match')}>no_match</Button>
 				</Accordion.Content>
 			</Accordion.Item>
 			<Accordion.Item value="3">

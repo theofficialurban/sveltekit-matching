@@ -1,0 +1,28 @@
+.score {
+	@apply justify-center;
+	@apply grid grid-flow-row;
+	@apply static left-7 justify-center;
+	@apply text-3xl font-extrabold;
+}
+.bottom {
+	@apply fixed bottom-0 left-0;
+	@apply font-extrabold;
+}
+.cardControls {
+	@apply fixed grid grid-flow-row;
+	@apply top-[250px] left-10;
+}
+.timer {
+	@apply justify-center;
+	@apply grid grid-flow-row;
+	@apply static left-7 top-[150px] justify-center;
+	@apply text-xl font-extrabold;
+}
+.scoreGradient {
+	@apply bg-clip-text text-transparent bg-gradient-to-r;
+	@apply from-[#ff1b6b] to-[#f89b29];
+}
+.timerGradient {
+	@apply bg-clip-text text-transparent bg-gradient-to-r;
+	@apply from-[#a8f368] to-[#f9035e];
+}

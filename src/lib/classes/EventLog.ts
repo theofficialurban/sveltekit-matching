@@ -1,23 +1,19 @@
-import type ICardGame from '$lib/types/CardGame';
 import { writable, type Writable } from 'svelte/store';
 import type CardGame from './CardGame';
 import { isUndefined } from 'lodash-es';
-interface IEventLogger {
-	logEvent: (type: ICardGame['ACTION_KEY'], data: ICardGame['GAMESUBJECT']['data']) => boolean;
+import type IEventLog from '$lib/types/EventLog';
+import type IGameHandler from '$lib/types/GameHandler';
+interface CEventLogger {
+	logEvent: (type: IGameHandler['Action'], data: IGameHandler['SubjectData']) => boolean;
 }
-type GameEvent = {
-	time: number;
-	type: ICardGame['ACTION_KEY'];
-	data: Required<ICardGame['SUBJECT_DATA']>;
-};
 
-export default class EventLogger implements IEventLogger {
+export default class EventLogger implements CEventLogger {
 	#_game: CardGame;
-	#_eventLog: Writable<GameEvent[]> = writable<ICardGame['GAME_EVENT'][]>([]);
+	#_eventLog: Writable<IEventLog['GameEvent'][]> = writable<IEventLog['GameEvent'][]>([]);
 	constructor(_game: CardGame) {
 		this.#_game = _game;
 	}
-	logEvent: IEventLogger['logEvent'] = (type, data): boolean => {
+	logEvent: CEventLogger['logEvent'] = (type, data): boolean => {
 		if (isUndefined(data)) return false;
 		this.#_eventLog.update((l) => {
 			l.push({ time: new Date().getTime(), data, type });

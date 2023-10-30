@@ -13,6 +13,7 @@
 		count: 5,
 		faceImages: [Face1, Face2, NotPictured],
 		cover: Cover,
+		timer: { time: 60, duration: 60000 },
 		adminControls: true
 	});
 
@@ -28,7 +29,7 @@
 	});
 </script>
 
-<GameBanner {game} />
+<!-- <GameBanner {game} /> -->
 {#if $gs.status === Status.STARTED && $gameTimer > 0}
 	<CardHand
 		on:match={({ detail }) => {

@@ -26,15 +26,31 @@ type Card = {
 type CardStatus = 'FACEDOWN' | 'FACEUP';
 
 type CardLike = Partial<Card> & { _id: number; _value: number };
-
-type CardMove = CardLike & { _prevStatus: CardStatus; _currentStatus: CardStatus };
 export default interface BicycleCard {
+	/**
+	 * @instance BicycleCardDeck
+	 */
 	Deck: BicycleCardDeck;
+	/**
+	 * Store inside of deck
+	 */
 	DeckStore: Writable<BicycleCardData[]>;
+	/**
+	 * Single card State
+	 */
 	State: Card;
 	Component: BicycleCardComponent;
+	/**
+	 * Single card store
+	 */
 	Store: Writable<Card>;
-	CardLikeData: CardMove | CardLike;
+	/**
+	 * Data that includes basic information about a card
+	 */
+	CardLike: CardLike;
+	/**
+	 * FACEUP | FACEDOWN
+	 */
 	Status: CardStatus;
 	/**
 	 * @prop Transition - The flip transition types
@@ -50,9 +66,9 @@ export default interface BicycleCard {
 		store: { rotation: Tweened<number>; fade: Tweened<number> };
 	};
 	Events: {
-		faceup: BicycleCard['CardLikeData'];
-		facedown: BicycleCard['CardLikeData'];
-		complete: BicycleCard['CardLikeData'];
+		faceup: BicycleCard['CardLike'];
+		facedown: BicycleCard['CardLike'];
+		complete: BicycleCard['CardLike'];
 	};
 	Options: {
 		faceImages?: string[];

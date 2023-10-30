@@ -47,7 +47,7 @@ export default class CardGame {
 	 * @public
 	 * timer GameTimer
 	 */
-	timer: GameTimer = new GameTimer(this, { time: 30 });
+	timer: GameTimer = new GameTimer(this, { time: 60 });
 	/**
 	 * @public
 	 * In Play - handles the card currently being played.
@@ -77,7 +77,11 @@ export default class CardGame {
 			if (!isUndefined(options.adminControls)) this.adminControls = options.adminControls;
 			if (!isUndefined(options.cover)) this.#_options.cover = options.cover;
 			if (!isUndefined(options.faceImages)) this.#_options.faceImages = options.faceImages;
+			if (!isUndefined(options.timer) && !isUndefined(options.timer.time)) {
+				this.timer = new GameTimer(this, { time: options.timer.time });
+			}
 		}
+
 		// Create the new deck of cards.
 		this.deck = new BicycleCardDeck(this);
 		// Add some cards to the deck.

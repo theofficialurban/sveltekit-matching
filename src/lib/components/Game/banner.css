@@ -16,7 +16,7 @@
 	@apply justify-center;
 	@apply grid grid-flow-row;
 	@apply static left-7 top-[150px] justify-center;
-	@apply text-xl font-extrabold;
+	@apply text-3xl font-extrabold;
 }
 .scoreGradient {
 	@apply bg-clip-text text-transparent bg-gradient-to-r;

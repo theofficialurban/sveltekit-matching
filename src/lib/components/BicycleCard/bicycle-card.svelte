@@ -44,7 +44,7 @@
 	on:keypress
 	tabindex={$store._id}
 	use:cardflip={{ rotation: $rotation, fade: $fade }}
-	class={`w-[250px] h-[350px] relative text-black playing-card p-3 ${className}`}
+	class={`playing-card ${className}`}
 >
 	{#if $rotation > 180}
 		<PlayingCardFace {store} />
@@ -62,5 +62,6 @@
 		font-family: PlayingCards;
 		width: 250px;
 		height: 350px;
+		@apply w-[250px] h-[350px] relative text-black p-3;
 	}
 </style>

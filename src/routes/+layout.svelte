@@ -1,31 +1,19 @@
-<script>
+<script lang="ts">
 	import '../app.postcss';
 	import Button from '$lib/components/ui/button/button.svelte';
-	import PlayingCardIcon from '$lib/assets/cardicon.png';
 	import Icon from '$lib/components/SVG/icon.svelte';
+	import type { LayoutData } from './$types';
+	import CardControls from '$lib/components/Dashboard/card-controls.svelte';
+	import GameHeader from '$lib/components/Game/header/game-header.svelte';
+	import Sidebar from '$lib/components/Sidebar/sidebar.svelte';
+	export let data: LayoutData;
+	const { game } = data;
 </script>
 
-<div class="container w-screen h-screen">
-	<div class="bg-opacity-20 fixed w-screen left-0 h-[50px]">
-		<center
-			><slot name="header"
-				><span class="text-3xl font-extrabold text-center justify-center">HEADER</span></slot
-			></center
-		>
+<div class="absolute w-screen h-screen">
+	<Sidebar {game} />
+
+	<div class=" container w-[100%] h-fit mx-auto mt-28">
+		<div class="mt-4"><slot /></div>
 	</div>
-	<div class=" fixed left-0 w-[100px] h-screen flow-root">
-		<slot name="sidebar">
-			<center>
-				<span class="p-3 w-[75px] h-[75px]"><Icon /></span>
-				<div class="grid grid-flow-row gap-20 px-4 justify-items-start">
-					<Button>FFFFF</Button>
-					<Button>FFFFF</Button>
-					<Button>FFFFF</Button>
-					<Button>FFFFF</Button>
-					<Button>FFFFF</Button>
-				</div>
-			</center>
-		</slot>
-	</div>
-	<slot />
 </div>

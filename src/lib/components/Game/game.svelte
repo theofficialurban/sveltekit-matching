@@ -1,21 +1,12 @@
 <script lang="ts">
 	import CardGame, { Status } from '$lib/classes/CardGame';
 	import CardHand from '../CardHand/card-hand.svelte';
-	import NotPictured from '$lib/assets/not-pictured.png';
-	import Face1 from '$lib/assets/card-face.png';
-	import Face2 from '$lib/assets/card2.png';
-	import Cover from '$lib/assets/card-cover.png';
+
 	import { onDestroy } from 'svelte';
 	import GameBanner from './game-banner.svelte';
 	import GameOver from './game-over.svelte';
-	const game = new CardGame({
-		pair: true,
-		count: 5,
-		faceImages: [Face1, Face2, NotPictured],
-		cover: Cover,
-		timer: { time: 60, duration: 60000 },
-		adminControls: true
-	});
+	import GameHeader from './header/game-header.svelte';
+	export let game: CardGame;
 
 	const {
 		reset,
@@ -31,6 +22,7 @@
 
 <!-- <GameBanner {game} /> -->
 {#if $gs.status === Status.STARTED && $gameTimer > 0}
+	<GameHeader {game} />
 	<CardHand
 		on:match={({ detail }) => {
 			const { one, two } = detail;
@@ -44,5 +36,5 @@
 		{game}
 	/>
 {:else if $gs.status === Status.COMPLETE}
-	<GameOver />
+	<GameOver {game} />
 {/if}

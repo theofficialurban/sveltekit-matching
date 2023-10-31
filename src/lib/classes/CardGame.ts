@@ -9,6 +9,7 @@ import EventLogger from './EventLog';
 import GameHandler from './GameHandler';
 import InPlay from './InPlay';
 import GameTimer from './GameTimer';
+import type IGameHandler from '$lib/types/GameHandler';
 export enum Status {
 	STOPPED,
 	STARTED,
@@ -16,8 +17,7 @@ export enum Status {
 }
 // Merge the options for all sub-classes to allow all options in this constructor.
 type Options = Partial<ICardGame['OPTIONS'] & BicycleCard['Options']>;
-
-type GameStore = { score: number; status: Status };
+type GameStore = { score: number; status: Status; final: IGameHandler['SubjectData'] | null };
 /**
  * @class CardGame
  * The helper class which brings all services together
@@ -32,7 +32,11 @@ export default class CardGame {
 	 * @public @store
 	 * game - Store for the score and game status
 	 */
-	game: Writable<GameStore> = writable<GameStore>({ score: 0, status: Status.STOPPED });
+	game: Writable<GameStore> = writable<GameStore>({
+		score: 0,
+		status: Status.STOPPED,
+		final: null
+	});
 	/**
 	 * @public @logger
 	 * eventLogger - Logs all game events
@@ -109,7 +113,7 @@ export default class CardGame {
 
 			// Reset Event Log
 			this.eventLogger.reset();
-			this.game.set({ score: 0, status: Status.STOPPED });
+			this.game.set({ score: 0, status: Status.STOPPED, final: null });
 			this.timer.reset();
 			resolve();
 		});
@@ -123,4 +127,13 @@ export default class CardGame {
 			return g;
 		});
 	}
+	/**
+	 * @public Sets final game statistics
+	 */
+	makeFinalStats = () => {
+		this.game.update((g) => {
+			g.final = this.handler.makeData();
+			return g;
+		});
+	};
 }

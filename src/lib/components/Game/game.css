@@ -1,0 +1,6 @@
+.timerGradient {
+	@apply font-extrabold text-3xl bg-gradient-to-r bg-clip-text text-transparent from-[#ff0f7b] to-[#f89b29];
+}
+.scoreGradient {
+	@apply font-extrabold text-3xl bg-gradient-to-r bg-clip-text text-transparent from-[#f3f520] to-[#59d102];
+}

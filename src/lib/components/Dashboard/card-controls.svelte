@@ -35,7 +35,7 @@
 
 <Dialog.Root>
 	<Dialog.Trigger class="py-3">
-		<Button variant="secondary">Logs</Button>
+		<Button variant="secondary">📚</Button>
 	</Dialog.Trigger>
 	<Dialog.Content class="overflow-scroll h-[300px] w-[500px]">
 		{#each $eventStore as event}
@@ -67,10 +67,8 @@
 		<Button variant="secondary">⭐</Button>
 	</Dialog.Trigger>
 	<Dialog.Content>
-		<Button on:click={() => setStatus('FACEUP')}>Reveal All</Button>
-		<Button on:click={() => setStatus('FACEDOWN')}>Cover All</Button>
 		<Button on:click={() => shuffle(5)}>Shuffle</Button>
-		<Button on:click={() => reset()}>Reset All</Button>
+		<Button on:click={() => reset()}>Reset</Button>
 
 		<Accordion.Root>
 			<Accordion.Item value="1">

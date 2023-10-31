@@ -44,9 +44,17 @@ const handleStart: HandlerFunction = (game: CardGame, data: IGameHandler['Subjec
 		resolve();
 	});
 };
-const handleMatch: HandlerFunction = () => {
+const handleMatch: HandlerFunction = (g, data) => {
 	return new Promise<void>((resolve) => {
-		console.log('Match');
+		const remaining = data._cardsRemaining;
+		const {
+			handler: { play$ }
+		} = g;
+		if (remaining === 0) {
+			g.makeFinalStats();
+			g.gameStatus = Status.COMPLETE;
+			play$('end');
+		}
 		resolve();
 	});
 };

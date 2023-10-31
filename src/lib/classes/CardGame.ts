@@ -1,7 +1,4 @@
-import Cover from '$lib/assets/card-cover.png';
-import NotPictured from '$lib/assets/not-pictured.png';
 import type BicycleCard from '$lib/types/BicycleCard';
-import { isUndefined } from 'lodash-es';
 import BicycleCardDeck from './Deck';
 import type ICardGame from '$lib/types/CardGame';
 import { writable, type Writable } from 'svelte/store';
@@ -10,13 +7,14 @@ import GameHandler from './GameHandler';
 import InPlay from './InPlay';
 import GameTimer from './GameTimer';
 import type IGameHandler from '$lib/types/GameHandler';
+import type Level from './Level';
 export enum Status {
 	STOPPED,
 	STARTED,
 	COMPLETE
 }
 // Merge the options for all sub-classes to allow all options in this constructor.
-type Options = Partial<ICardGame['OPTIONS'] & BicycleCard['Options']>;
+export type GameOptions = Partial<ICardGame['OPTIONS'] & BicycleCard['Options']>;
 type GameStore = { score: number; status: Status; final: IGameHandler['SubjectData'] | null };
 /**
  * @class CardGame
@@ -57,10 +55,7 @@ export default class CardGame {
 	 * In Play - handles the card currently being played.
 	 */
 	inPlay: InPlay = new InPlay(this);
-	/**
-	 * @readonly @public adminControls - T/F for admin controls
-	 */
-	readonly adminControls: boolean = false;
+
 	/**
 	 * @private #_options
 	 * count - Card Count
@@ -68,28 +63,14 @@ export default class CardGame {
 	 * faceImages - Array of random face images
 	 * cover - Cover of the card
 	 */
-	#_options = {
-		count: 1,
-		pair: false,
-		faceImages: [NotPictured],
-		cover: Cover
-	};
-	constructor(options?: Options) {
-		if (!isUndefined(options)) {
-			if (!isUndefined(options.count)) this.#_options.count = options.count;
-			if (!isUndefined(options.pair)) this.#_options.pair = options.pair;
-			if (!isUndefined(options.adminControls)) this.adminControls = options.adminControls;
-			if (!isUndefined(options.cover)) this.#_options.cover = options.cover;
-			if (!isUndefined(options.faceImages)) this.#_options.faceImages = options.faceImages;
-			if (!isUndefined(options.timer) && !isUndefined(options.timer.time)) {
-				this.timer = new GameTimer(this, { time: options.timer.time });
-			}
-		}
-
+	#_options;
+	constructor(readonly level: Level) {
 		// Create the new deck of cards.
 		this.deck = new BicycleCardDeck(this);
+		this.#_options = { ...level.cardOptions };
 		// Add some cards to the deck.
-		this.deck.createCards(this.#_options.count, { pair: this.#_options.pair });
+		console.log(level);
+		this.deck.createCards(level.cardOptions.count, level.cardOptions);
 	}
 	/**
 	 * @public @method reset()
@@ -107,6 +88,7 @@ export default class CardGame {
 			this.deck.reset();
 			// Create a new deck
 			const { pair, count, cover, faceImages } = this.#_options;
+			console.log(this.#_options);
 			this.deck.createCards(count, { pair, cover, faceImages });
 			// Reset In Play
 			this.inPlay.clearPlay();
@@ -135,5 +117,12 @@ export default class CardGame {
 			g.final = this.handler.makeData();
 			return g;
 		});
+	};
+	/**
+	 * Checks if admin controls are enabled.
+	 * @returns T/F Admin controls enabled
+	 */
+	isAdmin = (): boolean => {
+		return this.level.adminControls;
 	};
 }

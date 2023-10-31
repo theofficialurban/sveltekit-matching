@@ -7,7 +7,8 @@
 	export let game: CardGame;
 	const {
 		timer: { start, stop },
-		reset
+		reset,
+		isAdmin
 	} = game;
 </script>
 
@@ -19,7 +20,9 @@
 		<div class="grid grid-flow-row gap-20 px-4 justify-start">
 			<Button on:click={start}>▶️</Button>
 			<Button on:click={reset}>⏹️</Button>
-			<CardControls {game} />
+			{#if isAdmin()}
+				<CardControls {game} />
+			{/if}
 		</div>
 	</center>
 </div>

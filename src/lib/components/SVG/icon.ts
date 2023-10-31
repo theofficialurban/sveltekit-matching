@@ -1,47 +1,123 @@
+import { isUndefined } from 'lodash-es';
 import { quadInOut } from 'svelte/easing';
-import { tweened } from 'svelte/motion';
-
-export const showAnimation = (fn: () => void) => {
+import { tweened, type Tweened } from 'svelte/motion';
+export type CustomTweens = { fill: Tweened<number>; rotation: Tweened<number> };
+export const showAnimation = (t: CustomTweens, useRotation: boolean = false) => {
 	return new Promise<void>((resolve) => {
-		tweens.fill.set(0, { duration: 0 });
-		tweens.rotation.set(0, { duration: 0 });
-		setTimeout(() => {
-			fn();
-			setTimeout(() => {
-				tweens.fill.set(1).then(() => {
-					tweens.rotation.set(360).then(() => resolve());
-				});
-			}, 1200);
-		}, 1000);
+		const { fill, rotation } = t;
+		fill.set(0, { duration: 0 });
+		rotation.set(0, { duration: 0 });
+		fill.set(1, { duration: 1000 }).then(() => {
+			if (useRotation) {
+				rotation.set(360).then(() => resolve());
+			} else {
+				resolve();
+			}
+		});
 	});
 };
-export const tweens = {
-	fill: tweened(0, { duration: 2000, easing: quadInOut }),
-	rotation: tweened(0, { duration: 500, easing: quadInOut })
+export const makeTweens = (): CustomTweens => {
+	return {
+		fill: tweened(0, { duration: 1000, easing: quadInOut }),
+		rotation: tweened(0, { duration: 1000, easing: quadInOut })
+	};
 };
-
-export function rotation(node: SVGElement, { rotation, fill }: { rotation: number; fill: number }) {
+export function interactivity(
+	node: SVGElement,
+	{
+		rotation,
+		fill,
+		axis,
+		bounce,
+		allowFlip
+	}: { rotation: number; bounce: number; fill: number; axis?: 'x' | 'y' | 'z'; allowFlip?: boolean }
+) {
 	const child = node.getElementsByTagNameNS('http://www.w3.org/2000/svg', 'path');
+	//const existing = getComputedStyle(node).transform.replace('none', '');
+	const getAxis = (a: 'x' | 'y' | 'z') => {
+		switch (a) {
+			case 'x':
+				return '1,0,0';
+			case 'y':
+				return '0,1,0';
+			case 'z':
+				return '0,0,1';
+			default:
+				return '0,1,0';
+		}
+	};
 	const setFillOpacity = (o: string) => {
-		child.item(0)?.setAttribute('fill-opacity', o);
-		//child.item(0)?.setAttribute('stroke-width', (1 - fill).toString());
-		child.item(1)?.setAttribute('fill-opacity', o);
-		child.item(2)?.setAttribute('fill-opacity', o);
-		child.item(3)?.setAttribute('fill-opacity', o);
-		child.item(4)?.setAttribute('fill-opacity', o);
-		child.item(5)?.setAttribute('fill-opacity', o);
-		child.item(6)?.setAttribute('fill-opacity', o);
-		child.item(7)?.setAttribute('fill-opacity', o);
+		for (let index = 0; index < child.length; index++) {
+			child.item(index)?.setAttribute('fill-opacity', o);
+		}
 	};
 	setFillOpacity(fill.toString());
 	const setRotation = (r: string) => {
-		node.setAttribute('style', `transform: rotate3d(0,1,0, ${r}deg)`);
+		return `rotate3d(${getAxis(axis ?? 'y')}, ${r}deg)`;
 	};
 	setRotation(rotation.toString());
+	const setTranslateY = (r: string) => {
+		return `translateY(${r}px)`;
+	};
+	setTranslateY(bounce.toString());
+	const setStrokeWidth = (w: string) => {
+		for (let index = 0; index < child.length; index++) {
+			child.item(index)?.setAttribute('stroke-width', w);
+		}
+	};
+
+	return {
+		update({ rotation, fill, bounce }: { rotation: number; fill: number; bounce: number }) {
+			setFillOpacity(fill.toString());
+
+			setStrokeWidth((1 - fill).toString());
+			const style = `transform:
+			${!isUndefined(allowFlip) ? setRotation(rotation.toString()) : ''}
+			${setTranslateY(bounce.toString())}
+			`;
+			node.setAttribute('style', style);
+		}
+	};
+}
+export function rotation(
+	node: SVGElement,
+	{ rotation, fill, axis }: { rotation: number; fill: number; axis?: 'x' | 'y' | 'z' }
+) {
+	const child = node.getElementsByTagNameNS('http://www.w3.org/2000/svg', 'path');
+	const getAxis = (a: 'x' | 'y' | 'z') => {
+		switch (a) {
+			case 'x':
+				return '1,0,0';
+			case 'y':
+				return '0,1,0';
+			case 'z':
+				return '0,0,1';
+			default:
+				return '0,1,0';
+		}
+	};
+	const setFillOpacity = (o: string) => {
+		for (let index = 0; index < child.length; index++) {
+			child.item(index)?.setAttribute('fill-opacity', o);
+		}
+	};
+	setFillOpacity(fill.toString());
+	const setRotation = (r: string) => {
+		node.setAttribute('style', `transform: rotate3d(${getAxis(axis ?? 'y')}, ${r}deg)`);
+	};
+
+	setRotation(rotation.toString());
+	const setStrokeWidth = (w: string) => {
+		for (let index = 0; index < child.length; index++) {
+			child.item(index)?.setAttribute('stroke-width', w);
+		}
+	};
+
 	return {
 		update({ rotation, fill }: { rotation: number; fill: number }) {
 			setFillOpacity(fill.toString());
 			setRotation(rotation.toString());
+			setStrokeWidth((1 - fill).toString());
 		}
 	};
 }

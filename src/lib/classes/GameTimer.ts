@@ -64,8 +64,6 @@ export default class GameTimer implements IGameTimer {
 			});
 	};
 	reset = (): void => {
-		const { play$ } = this.#_game.handler;
-		play$('stop');
 		this.#_timer.set(this.#_time, { duration: 0 });
 	};
 	get gameTimer() {

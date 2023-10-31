@@ -1,13 +1,28 @@
 <script lang="ts">
 	import { draw } from 'svelte/transition';
-	import { showAnimation, tweens, rotation } from './icon';
+	import { showAnimation, makeTweens, rotation, interactivity } from './icon';
 	import { quintOut } from 'svelte/easing';
-	import { onMount } from 'svelte';
+	import { SvelteComponent, onMount } from 'svelte';
+	import { spring } from 'svelte/motion';
+	export let width = '75px';
+	export let height = '75px';
+	export class Icon extends SvelteComponent<{ width: string; height: string }, never, never> {}
 	let show = false;
 	onMount(() => {
-		showAnimation(() => (show = true));
+		show = true;
 	});
-	const { fill, rotation: rot } = tweens;
+	const customTweens = makeTweens();
+	const { fill, rotation: rot } = customTweens;
+	const tt = spring(0, { stiffness: 0.1, damping: 0.2 });
+
+	const handleIn = () => {
+		tt.set(-10, { soft: 10 });
+		rot.set(360, { duration: 1000 });
+	};
+	const handleOut = () => {
+		tt.set(0, { soft: 10 });
+		rot.set(0, { duration: 1000 });
+	};
 </script>
 
 <svg
@@ -15,14 +30,12 @@
 	xmlns="http://www.w3.org/2000/svg"
 	xmlns:xlink="http://www.w3.org/1999/xlink"
 	aria-hidden="true"
-	role="img"
-	on:click={() => {
-		if ($rot === 360) $rot = 0;
-		if ($rot === 0) $rot = 360;
-	}}
-	use:rotation={{ fill: $fill, rotation: $rot }}
-	width="75px"
-	height="75px"
+	on:pointerenter={handleIn}
+	on:pointerleave={handleOut}
+	role="button"
+	use:interactivity={{ fill: $fill, rotation: $rot, bounce: $tt }}
+	{width}
+	{height}
 	class="iconify iconify--fxemoji"
 	preserveAspectRatio="xMidYMid meet"
 	fill="#000000"
@@ -37,6 +50,7 @@
 				fill-opacity="0"
 				stroke="red"
 				stroke-width="1"
+				on:introend={() => showAnimation(customTweens)}
 				in:draw={{ duration: 1000, easing: quintOut }}
 				fill="#E5E4DF"
 				d="M431.739 511.311H99.726c-7.953 0-14.4-6.447-14.4-14.4V21.333c0-7.953 6.447-14.4 14.4-14.4h332.013c7.953 0 14.4 6.447 14.4 14.4v475.579c0 7.952-6.447 14.399-14.4 14.399z"

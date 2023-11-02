@@ -2,23 +2,25 @@
 	import { page } from '$app/stores';
 	import CardGame, { Status } from '$lib/classes/CardGame';
 	import Game from '$lib/components/Game/game.svelte';
+	import IconTwo from '$lib/components/SVG/icon-two.svelte';
 
 	import type { LayoutData, PageData } from './$types';
 
 	export let data: PageData;
-	const { game } = data;
-	const {
-		game: g,
-		level: { color }
-	} = game;
+
+	$: game = data.game;
+
 	const user = $page.data.user;
 </script>
 
-<Game {game} />
-<div>
-	You are logged in as... <span class="userGrad"
-		>{user?.user_metadata.custom_claims.global_name ?? ''}</span
-	>
+{#if game}
+	<Game {game} />
+{:else}
+	<IconTwo />
+{/if}
+<div class="fixed top-0 right-0 pr-8">
+	You are logged in as...
+	<span class="userGrad">{user?.user_metadata.custom_claims.global_name ?? ''}</span>
 </div>
 
 <style>

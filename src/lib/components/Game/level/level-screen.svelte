@@ -7,14 +7,6 @@
 	import Button from '$lib/components/ui/button/button.svelte';
 
 	export let game: CardGame;
-	const {
-		level: {
-			level,
-			cardOptions: { count },
-			timerOptions: { time }
-		},
-		timer: { start }
-	} = game;
 </script>
 
 <div>
@@ -25,7 +17,7 @@
 
 		<div class="py-28 font-extrabold grid grid-flow-row">
 			<span class="text-xl">Welcome To....</span>
-			<span class="text-8xl level">LEVEL {level}</span>
+			<span class="text-8xl level">LEVEL {game.level.level}</span>
 			<div class="grid grid-flow-col text-xl font-light">
 				<div class="grid grid-flow-col py-6">
 					<div class="grid grid-flow-row">
@@ -33,7 +25,7 @@
 							<IconTwo width="75px" height="75px" />
 						</center>
 						<div class="font-light text-2xl">
-							<span class="text-red-800">{2 * (count ?? 0)}</span> Cards
+							<span class="text-red-800">{2 * (game.level.cardOptions.count ?? 0)}</span> Cards
 						</div>
 					</div>
 					<div class="grid grid-flow-row">
@@ -41,13 +33,13 @@
 							<Hourglass width="75px" height="75px" />
 						</center>
 						<div class="text-2xl font-light">
-							<span class=" text-lime-400">{time}</span> seconds
+							<span class=" text-lime-400">{game.level.timerOptions.time}</span> seconds
 						</div>
 					</div>
 				</div>
 			</div>
 			<div class="py-5">
-				<Button on:click={start} size="lg" variant="outline" class="">
+				<Button on:click={game.timer.start} size="lg" variant="outline" class="">
 					<span class="playBtn">PLAY GAME</span>
 				</Button>
 			</div>

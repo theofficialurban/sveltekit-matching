@@ -10,6 +10,7 @@ import type IGameHandler from '$lib/types/GameHandler';
 import type Level from './Level';
 import type { User } from '@supabase/supabase-js';
 import supabaseClient from '$lib/supabaseClient';
+import { invalidate } from '$app/navigation';
 export enum Status {
 	STOPPED,
 	STARTED,

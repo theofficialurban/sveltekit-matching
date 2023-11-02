@@ -5,10 +5,8 @@
 	import '../game.css';
 	export let game: CardGame;
 
-	const {
-		game: g,
-		timer: { gameTimer }
-	} = game;
+	$: g = game.game;
+	$: gameTimer = game.timer.gameTimer;
 </script>
 
 <div class="bg-opacity-20 z-20 fixed left-[8rem] top-4" transition:fade>

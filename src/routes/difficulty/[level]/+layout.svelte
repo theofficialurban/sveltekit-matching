@@ -1,19 +1,11 @@
 <script lang="ts">
-	import '../../../app.postcss';
-
-	import type { LayoutServerData } from './$types';
-
+	import { page } from '$app/stores';
 	import Sidebar from '$lib/components/Sidebar/sidebar.svelte';
-	import CardGame from '$lib/classes/CardGame';
-	import type Level from '$lib/classes/Level';
-	export let data: LayoutServerData;
-	const { level } = data;
-	const game = new CardGame(JSON.parse(level));
+	import '../../../app.postcss';
 </script>
 
 <div class="absolute w-screen h-screen">
-	<Sidebar {game} />
-
+	<Sidebar user={$page.data.user} game={$page.data.game} />
 	<div class=" container w-[100%] h-fit mx-auto mt-28">
 		<div class="mt-4"><slot /></div>
 	</div>

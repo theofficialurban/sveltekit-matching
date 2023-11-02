@@ -1,4 +1,4 @@
-import { SUPABASE_KEY, SUPABASE_URL } from '$env/static/private';
+import { PUBLIC_SUPABASE_KEY, PUBLIC_SUPABASE_URL } from '$env/static/public';
 import { createClient } from '@supabase/supabase-js';
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
@@ -7,6 +7,48 @@ export type Row<T extends keyof Database['public']['Tables']> =
 interface Database {
 	public: {
 		Tables: {
+			results: {
+				Row: {
+					created_at: string;
+					id: number;
+					level: number | null;
+					score: number | null;
+					time: number | null;
+					user: string | null;
+				};
+				Insert: {
+					created_at?: string;
+					id?: number;
+					level?: number | null;
+					score?: number | null;
+					time?: number | null;
+					user?: string | null;
+				};
+				Update: {
+					created_at?: string;
+					id?: number;
+					level?: number | null;
+					score?: number | null;
+					time?: number | null;
+					user?: string | null;
+				};
+				Relationships: [
+					{
+						foreignKeyName: 'results_level_fkey';
+						columns: ['level'];
+						isOneToOne: false;
+						referencedRelation: 'levels';
+						referencedColumns: ['lvl#'];
+					},
+					{
+						foreignKeyName: 'results_user_fkey';
+						columns: ['user'];
+						isOneToOne: false;
+						referencedRelation: 'users';
+						referencedColumns: ['id'];
+					}
+				];
+			};
 			levels: {
 				Row: {
 					adminControls: boolean;
@@ -59,5 +101,5 @@ interface Database {
 export type DbResult<T> = T extends PromiseLike<infer U> ? U : never;
 export type DbResultOk<T> = T extends PromiseLike<{ data: infer U }> ? Exclude<U, null> : never;
 
-const supabaseClient = createClient<Database>(SUPABASE_URL, SUPABASE_KEY);
+const supabaseClient = createClient<Database>(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_KEY);
 export default supabaseClient;

@@ -52,7 +52,6 @@ const handleMatch: HandlerFunction = (g, data) => {
 			handler: { play$ }
 		} = g;
 		if (remaining === 0) {
-			g.makeFinalStats();
 			g.gameStatus = Status.COMPLETE;
 			play$('end');
 		}

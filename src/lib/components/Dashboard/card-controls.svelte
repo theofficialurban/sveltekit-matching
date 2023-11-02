@@ -2,6 +2,7 @@
 	import * as Dialog from '$lib/components/ui/dialog';
 	import * as Accordion from '$lib/components/ui/accordion/';
 	import type BicycleCard from '$lib/types/BicycleCard';
+	import { Shield, ListTree } from 'lucide-svelte';
 	import Button from '../ui/button/button.svelte';
 	import type ICardGame from '$lib/types/CardGame';
 
@@ -35,7 +36,7 @@
 
 <Dialog.Root>
 	<Dialog.Trigger class="py-3">
-		<Button variant="secondary">📚</Button>
+		<center><Button variant="outline" size="icon" value="Logs"><ListTree /></Button></center>
 	</Dialog.Trigger>
 	<Dialog.Content class="overflow-scroll h-[300px] w-[500px]">
 		{#each $eventStore as event}
@@ -64,7 +65,7 @@
 </Dialog.Root>
 <Dialog.Root>
 	<Dialog.Trigger>
-		<Button variant="secondary">⭐</Button>
+		<Button variant="outline" size="icon"><Shield /></Button>
 	</Dialog.Trigger>
 	<Dialog.Content>
 		<Button on:click={() => shuffle(5)}>Shuffle</Button>

@@ -1,7 +1,16 @@
 <script lang="ts">
-	import type { PageData } from './$types';
 	import supabaseClient from '$lib/supabaseClient';
-	export let data: PageData;
+
 	//supabaseClient.auth.signInWithOAuth({ provider: 'discord' });
-	supabaseClient.auth.getSession().then((u) => console.log(u));
+	const insert = async () => {
+		const {
+			data: { user }
+		} = await supabaseClient.auth.getUser();
+		const { error } = await supabaseClient
+			.from('results')
+			.insert({ score: 2, level: 1, time: 0.4, user: user?.id });
+		if (error) throw error;
+	};
 </script>
+
+<button on:click={insert}>ff</button>

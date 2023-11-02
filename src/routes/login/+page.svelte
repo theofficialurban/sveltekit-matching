@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import supabaseClient from '$lib/server/supabaseClient';
+	import supabaseClient from '$lib/supabaseClient';
 	import Button from '$lib/components/ui/button/button.svelte';
 	supabaseClient.auth.getSession().then((s) => console.log(s));
 	export let data: PageData;

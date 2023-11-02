@@ -1,5 +1,5 @@
 import Level from '$lib/classes/Level';
-import type { Row } from '$lib/server/supabaseClient';
+import type { Row } from '$lib/supabaseClient';
 import { isUndefined } from 'lodash-es';
 import type { LayoutServerLoad } from './$types';
 import Face1 from '$lib/assets/card-face.png';
@@ -27,11 +27,11 @@ export const load: LayoutServerLoad = (async ({ params, locals }) => {
 			count: search.cards ?? 1,
 			timer: { time: search.time ?? 60 },
 			faceImages: [Face1, Face2],
-			cover: Cover
+			cover: Cover,
+			adminControls: search.adminControls ?? false
 		});
 	};
 
 	const foundLvl = await getLevel(level);
-
 	return { level: JSON.stringify(foundLvl) };
 }) satisfies LayoutServerLoad;

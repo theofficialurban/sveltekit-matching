@@ -8,6 +8,8 @@ import InPlay from './InPlay';
 import GameTimer from './GameTimer';
 import type IGameHandler from '$lib/types/GameHandler';
 import type Level from './Level';
+import type { User } from '@supabase/supabase-js';
+import supabaseClient from '$lib/supabaseClient';
 export enum Status {
 	STOPPED,
 	STARTED,
@@ -64,7 +66,7 @@ export default class CardGame {
 	 * cover - Cover of the card
 	 */
 	#_options;
-	constructor(readonly level: Level) {
+	constructor(readonly level: Level, readonly user: User | null = null) {
 		// Create the new deck of cards.
 		this.deck = new BicycleCardDeck(this);
 		this.#_options = { ...level.cardOptions };
@@ -113,9 +115,21 @@ export default class CardGame {
 	/**
 	 * @public Sets final game statistics
 	 */
-	makeFinalStats = () => {
+	makeFinalStats = async () => {
+		const data = this.handler.makeData();
+		if (this.user) {
+			const { error } = await supabaseClient.from('results').insert({
+				score: data._score,
+				time: data._currentTime,
+				user: this.user.id,
+				level: this.level.level
+			});
+			if (error) throw error;
+			console.log('Hit');
+		}
 		this.game.update((g) => {
-			g.final = this.handler.makeData();
+			g.final = data;
+
 			return g;
 		});
 	};

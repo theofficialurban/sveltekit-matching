@@ -4,7 +4,10 @@ import Level from '../Level';
 
 export default class GameFactory {
 	static newGame = (level: Level) => {
-		return new CardGame(level);
+		return new Promise<CardGame>((resolve) => {
+			const ng = new CardGame(level);
+			return resolve(ng);
+		});
 	};
 	static newLevel = (lvl: number, options: LevelOptions): Level => {
 		return new Level(lvl, options);

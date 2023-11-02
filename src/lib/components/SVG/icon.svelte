@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { draw } from 'svelte/transition';
-	import { showAnimation, makeTweens, rotation, interactivity } from './icon';
+	import { interactivity, options } from './icon';
 	import { quintOut } from 'svelte/easing';
 	import { SvelteComponent, onMount } from 'svelte';
 	import { spring } from 'svelte/motion';
@@ -11,18 +11,8 @@
 	onMount(() => {
 		show = true;
 	});
-	const customTweens = makeTweens();
-	const { fill, rotation: rot } = customTweens;
-	const tt = spring(0, { stiffness: 0.1, damping: 0.2 });
 
-	const handleIn = () => {
-		tt.set(-10, { soft: 10 });
-		rot.set(360, { duration: 1000 });
-	};
-	const handleOut = () => {
-		tt.set(0, { soft: 10 });
-		rot.set(0, { duration: 1000 });
-	};
+	const int = options();
 </script>
 
 <svg
@@ -30,10 +20,8 @@
 	xmlns="http://www.w3.org/2000/svg"
 	xmlns:xlink="http://www.w3.org/1999/xlink"
 	aria-hidden="true"
-	on:pointerenter={handleIn}
-	on:pointerleave={handleOut}
 	role="button"
-	use:interactivity={{ fill: $fill, rotation: $rot, bounce: $tt }}
+	use:interactivity={$int}
 	{width}
 	{height}
 	class="iconify iconify--fxemoji"
@@ -50,7 +38,7 @@
 				fill-opacity="0"
 				stroke="red"
 				stroke-width="1"
-				on:introend={() => showAnimation(customTweens)}
+				on:introend={() => $int.showAnimation()}
 				in:draw={{ duration: 1000, easing: quintOut }}
 				fill="#E5E4DF"
 				d="M431.739 511.311H99.726c-7.953 0-14.4-6.447-14.4-14.4V21.333c0-7.953 6.447-14.4 14.4-14.4h332.013c7.953 0 14.4 6.447 14.4 14.4v475.579c0 7.952-6.447 14.399-14.4 14.399z"

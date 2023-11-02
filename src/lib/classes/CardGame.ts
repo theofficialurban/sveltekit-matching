@@ -49,7 +49,7 @@ export default class CardGame {
 	 * @public
 	 * timer GameTimer
 	 */
-	timer: GameTimer = new GameTimer(this, { time: 60 });
+	timer: GameTimer;
 	/**
 	 * @public
 	 * In Play - handles the card currently being played.
@@ -68,8 +68,9 @@ export default class CardGame {
 		// Create the new deck of cards.
 		this.deck = new BicycleCardDeck(this);
 		this.#_options = { ...level.cardOptions };
+		this.timer = new GameTimer(this, level.timerOptions);
 		// Add some cards to the deck.
-		console.log(level);
+
 		this.deck.createCards(level.cardOptions.count, level.cardOptions);
 	}
 	/**

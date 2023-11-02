@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { draw } from 'svelte/transition';
-	import { showAnimation, rotation, makeTweens, interactivity } from './icon';
+	import { options, interactivity } from './icon';
 	import { quintOut } from 'svelte/easing';
 	import { SvelteComponent, onMount } from 'svelte';
 	import { spring } from 'svelte/motion';
@@ -11,18 +11,7 @@
 	onMount(() => {
 		show = true;
 	});
-	const customTweens = makeTweens();
-	const { fill, rotation: rot } = customTweens;
-	const tt = spring(0, { stiffness: 0.1, damping: 0.2 });
-
-	const handleIn = () => {
-		tt.set(-10, { soft: 10 });
-		rot.set(360, { duration: 1000 });
-	};
-	const handleOut = () => {
-		tt.set(0, { soft: 10 });
-		rot.set(0, { duration: 1000 });
-	};
+	const intOptions = options();
 </script>
 
 <button on:click={() => (show = !show)}>Reset Animation</button>
@@ -31,10 +20,8 @@
 		{height}
 		{width}
 		version="1.1"
-		on:pointerenter={handleIn}
-		on:pointerleave={handleOut}
 		role="img"
-		use:interactivity={{ fill: $fill, rotation: $rot, axis: 'y', bounce: $tt }}
+		use:interactivity={$intOptions}
 		id="Layer_1"
 		xmlns="http://www.w3.org/2000/svg"
 		xmlns:xlink="http://www.w3.org/1999/xlink"
@@ -58,7 +45,7 @@
 					transition:draw|global={{ duration: 2000, speed: 2, delay: 500, easing: quintOut }}
 					stroke="deepskyblue"
 					stroke-width="1"
-					on:introend={() => showAnimation(customTweens)}
+					on:introend={() => $intOptions.showAnimation()}
 					style="fill:#5A3392;"
 					d="M104.062,1020.36c-22.022,0-40.031,18.009-40.031,40.031v78.5c-0.024,0.272-0.066,0.541-0.062,0.813 v12.031c0.082,10.626,15.98,10.626,16.062,0v-5.375h0.031v-85.969c0-13.434,10.534-24.094,23.969-24.094h240 c13.434,0,24,10.66,24,24.094v211.656c0.426,10.272,15.919,10.194,16-0.313c-0.12-70.392-0.063-140.889-0.063-211.344 c0-22.022-17.885-40.031-39.906-40.031H104.062z M71.062,1208.922c-4.073,0.464-7.135,3.932-7.094,8.031v12.031 c-0.003,0.272,0.038,0.541,0.062,0.813v198.531c0,22.022,18.01,40.031,40.031,40.031h240c22.022,0,39.906-18.009,39.906-40.031 c-0.082-30.459,0.063-60.975,0.063-91.375c0.056-4.853-4.186-8.638-9-8.031c-3.929,0.464-6.851,3.741-7,7.656v91.75 c0,13.434-10.566,23.969-24,23.969h-240c-13.435,0-23.969-10.535-23.969-23.969V1222.36h-0.031v-5.406 C80.084,1212.115,75.865,1208.337,71.062,1208.922z"
 				/>

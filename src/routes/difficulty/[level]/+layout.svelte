@@ -1,11 +1,14 @@
 <script lang="ts">
 	import '../../../app.postcss';
 
-	import type { LayoutData } from './$types';
+	import type { LayoutServerData } from './$types';
 
 	import Sidebar from '$lib/components/Sidebar/sidebar.svelte';
-	export let data: LayoutData;
-	const { game } = data;
+	import CardGame from '$lib/classes/CardGame';
+	import type Level from '$lib/classes/Level';
+	export let data: LayoutServerData;
+	const { level } = data;
+	const game = new CardGame(JSON.parse(level));
 </script>
 
 <div class="absolute w-screen h-screen">

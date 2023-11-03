@@ -11,10 +11,11 @@ interface Database {
 				Row: {
 					created_at: string;
 					id: number;
-					level: number | null;
+					level: Row<'levels'> | null;
 					score: number | null;
 					time: number | null;
 					user: string | null;
+					username: string | null;
 				};
 				Insert: {
 					created_at?: string;
@@ -23,6 +24,7 @@ interface Database {
 					score?: number | null;
 					time?: number | null;
 					user?: string | null;
+					username?: string | null;
 				};
 				Update: {
 					created_at?: string;
@@ -31,6 +33,7 @@ interface Database {
 					score?: number | null;
 					time?: number | null;
 					user?: string | null;
+					username?: string | null;
 				};
 				Relationships: [
 					{

@@ -1,10 +1,12 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import CardGame, { Status } from '$lib/classes/CardGame';
+
 	import Game from '$lib/components/Game/game.svelte';
 	import IconTwo from '$lib/components/SVG/icon-two.svelte';
+	import { onMount } from 'svelte';
 
-	import type { LayoutData, PageData } from './$types';
+	import type { PageData } from './$types';
+	import { scale } from 'svelte/transition';
 
 	export let data: PageData;
 

@@ -10,7 +10,6 @@ import type IGameHandler from '$lib/types/GameHandler';
 import type Level from './Level';
 import type { User } from '@supabase/supabase-js';
 import supabaseClient from '$lib/supabaseClient';
-import { invalidate } from '$app/navigation';
 export enum Status {
 	STOPPED,
 	STARTED,
@@ -123,6 +122,7 @@ export default class CardGame {
 				score: data._score,
 				time: data._currentTime,
 				user: this.user.id,
+				username: this.user.user_metadata.custom_claims.global_name,
 				level: this.level.level
 			});
 			if (error) throw error;

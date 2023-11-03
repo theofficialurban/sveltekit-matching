@@ -3,6 +3,7 @@
 	import SvelteIcon from '$lib/assets/Svelte_Logo.png';
 	import { onMount } from 'svelte';
 	import { fly } from 'svelte/transition';
+
 	let show = false;
 	onMount(() => (show = true));
 </script>

@@ -20,7 +20,7 @@
 {:else}
 	<IconTwo />
 {/if}
-<div class="fixed top-0 right-0 pr-8">
+<div class="fixed right-0 bottom-0 pr-8">
 	You are logged in as...
 	<span class="userGrad">{user?.user_metadata.custom_claims.global_name ?? ''}</span>
 </div>

@@ -20,8 +20,6 @@
 		</a>
 		{#if game}
 			<div class="grid grid-flow-row gap-6 px-5 justify-start">
-				<Button size="icon" variant="outline" on:click={game.timer.start}><Play /></Button>
-				<Button size="icon" variant="outline" on:click={game.reset}><Ban /></Button>
 				<hr />
 				{#if game.isAdmin()}
 					<div class=""><CardControls {game} /></div>

@@ -22,7 +22,7 @@
 				<div class="grid grid-flow-col py-6">
 					<div class="grid grid-flow-row">
 						<center class="">
-							<IconTwo width="75px" height="75px" />
+							<IconTwo width="50px" height="50px" />
 						</center>
 						<div class="font-light text-2xl">
 							<span class="text-red-800">{2 * (game.level.cardOptions.count ?? 0)}</span> Cards
@@ -30,7 +30,7 @@
 					</div>
 					<div class="grid grid-flow-row">
 						<center class="">
-							<Hourglass width="75px" height="75px" />
+							<Hourglass width="50px" height="50px" />
 						</center>
 						<div class="text-2xl font-light">
 							<span class=" text-lime-400">{game.level.timerOptions.time}</span> seconds

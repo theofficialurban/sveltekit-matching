@@ -4,22 +4,39 @@ import { linear } from 'svelte/easing';
 import { isUndefined } from 'lodash-es';
 import { tweened, type Tweened } from 'svelte/motion';
 import { get } from 'svelte/store';
+/**
+ * @type {GTOptions} - Game Timer Options
+ */
 export type GTOptions = {
 	time?: number;
 	delay?: number;
 	easing?: EasingFunction;
 };
+/**
+ * Implementation interface
+ */
 interface IGameTimer {
 	start: () => void;
 	stop: () => void;
 	reset: () => void;
 }
+/**
+ * @class GameTimer
+ * @implements {IGameTimer}
+ * The game timer using Svelte tweens.
+ */
 export default class GameTimer implements IGameTimer {
+	// # of Seconds (display / calculation)
 	#_time: number = 60;
+	// Actual duration (ms)
 	#_duration: number = this.#_time * 1000;
+	// Delay
 	#_delay: number = 0;
+	// Easing
 	#_easing: EasingFunction = linear;
+	// Tween
 	#_timer: Tweened<number>;
+	// Game
 	#_game: CardGame;
 	constructor(_game: CardGame, _options?: GTOptions) {
 		this.#_game = _game;
@@ -38,6 +55,11 @@ export default class GameTimer implements IGameTimer {
 		});
 		return this;
 	}
+	/**
+	 * @public @method start()
+	 * Starts the timer, and dispatches the end handle upon completion
+	 * @returns void
+	 */
 	start = (): void => {
 		const { play$ } = this.#_game.handler;
 
@@ -52,6 +74,10 @@ export default class GameTimer implements IGameTimer {
 				console.error(e);
 			});
 	};
+	/**
+	 * @public @method stop()
+	 * Stops the timer.
+	 */
 	stop = (): void => {
 		const { play$ } = this.#_game.handler;
 		this.#_timer
@@ -63,14 +89,24 @@ export default class GameTimer implements IGameTimer {
 				console.error(e);
 			});
 	};
+	/**
+	 * @public @method reset()
+	 * Resets the timer
+	 */
 	reset = (): void => {
 		this.#_timer.set(this.#_time, { duration: 0 });
 	};
+	/**
+	 * @public @property gameTimer
+	 */
 	get gameTimer() {
 		return {
 			subscribe: this.#_timer.subscribe
 		};
 	}
+	/**
+	 * @private @property current time
+	 */
 	private get current() {
 		return get(this.#_timer);
 	}

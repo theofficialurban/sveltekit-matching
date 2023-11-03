@@ -20,6 +20,7 @@
 		"@sveltejs/vite-plugin-svelte": "^2.4.6",
 		"@testing-library/dom": "^9.3.3",
 		"@testing-library/svelte": "^4.0.4",
+		"@tweakpane/core": "^2.0.1",
 		"@types/lodash": "^4.14.199",
 		"@types/lodash-es": "^4.17.9",
 		"@typescript-eslint/eslint-plugin": "^6.0.0",
@@ -56,6 +57,7 @@
 		"motion": "^10.16.4",
 		"rxjs": "^7.8.1",
 		"tailwind-merge": "^1.14.0",
-		"tailwind-variants": "^0.1.14"
+		"tailwind-variants": "^0.1.14",
+		"tweakpane": "^4.0.1"
 	}
 }

@@ -1,13 +1,38 @@
 <script lang="ts">
 	import * as Dialog from '$lib/components/ui/dialog';
 	import * as Accordion from '$lib/components/ui/accordion/';
-	import type BicycleCard from '$lib/types/BicycleCard';
 	import { Shield, ListTree } from 'lucide-svelte';
 	import Button from '../ui/button/button.svelte';
 	import type CardGame from '$lib/classes/CardGame';
-
+	import { browser } from '$app/environment';
+	import { Pane } from 'tweakpane';
 	export let game: CardGame;
 	$: deck = game.deck.getDeck();
+	if (browser) {
+		const pane = new Pane({ title: 'Admin Controls' });
+		const startBtn = pane.addButton({ title: 'Start Game' });
+		const endBtn = pane.addButton({ title: 'End Game' });
+		startBtn.on('click', () => game.timer.start());
+		endBtn.on('click', () => game.timer.stop());
+		const shuffleTab = pane.addTab({
+			pages: [{ title: 'Shuffle Cards' }, { title: 'Game Events' }, { title: 'Card List' }]
+		});
+		let bindings = {
+			cards: {
+				shuffle: 5
+			}
+		};
+		shuffleTab.pages[0].addBinding(bindings.cards, 'shuffle');
+		const shuffleBtn = shuffleTab.pages[0].addButton({ title: 'Shuffle' });
+		shuffleBtn.on('click', () => game.deck.shuffle(bindings.cards.shuffle));
+		const eventBtns = {
+			end: shuffleTab.pages[1].addButton({ title: 'End' }),
+			error: shuffleTab.pages[1].addButton({ title: 'Error' })
+		};
+
+		eventBtns.end.on('click', () => game.handler.play$('end'));
+		eventBtns.error.on('click', () => game.handler.play$('error'));
+	}
 </script>
 
 <!-- <Dialog.Root>
